@@ -5,8 +5,12 @@ class Logika_szachy():
         self.plansza = chess.Board()
 
     def wykonaj_ruch(self,ruch):
-        if self.plansza.is_legal(ruch):
-            self.plansza.push_san(ruch)
+        try:
+            move = self.plansza.parse_san(ruch)
+        except:
+            return False
+        if self.plansza.is_legal(move):
+            self.plansza.push(move)
             return True
         else:
             return False

@@ -41,6 +41,7 @@ class Silnik_3D():
         glColor3f(1,1,1)
         for i in range(0,8):
             for j in range(0,8):
+                square = chess.square(i,j)
                 if i < 2 or i > 5:
                     glPushMatrix()
                     glTranslatef(-7.5+2*j,-7.5+2*i,0)
