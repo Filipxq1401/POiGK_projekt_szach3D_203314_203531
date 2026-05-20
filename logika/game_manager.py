@@ -46,3 +46,6 @@ class Game_manager():
     def wykonaj_ruch(self,ruch):
         # tu jeszcze będzie zarządzanie animacjami ruchu i pozycjami poszczególnych figur
         return self.logika.wykonaj_ruch(ruch)
+    
+    def cofnij_ruch(self):
+        self.logika.cofnij_ruch()

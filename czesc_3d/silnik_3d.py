@@ -38,41 +38,44 @@ class Silnik_3D():
         #glRotatef(kat,0,1,0)
         #glTranslatef(-8,-8,1)
         glScalef(1,1,3)
-        glColor3f(1,1,1)
         for i in range(0,8):
             for j in range(0,8):
-                square = chess.square(i,j)
-                if i < 2 or i > 5:
-                    glPushMatrix()
-                    glTranslatef(-7.5+2*j,-7.5+2*i,0)
+                square = chess.square(j,i)
+                kolor = plansza.color_at(square)
+                glPushMatrix()
+                glTranslatef(-7.5+2*j,-7.5+2*i,0)
+                if kolor == chess.WHITE:
+                    glColor3f(1,1,1)
                     draw_cube()
-                    glPopMatrix()
-                if i == 3:
+                elif kolor == chess.BLACK:
                     glColor3f(0,0,0)
+                    draw_cube()
+                glPopMatrix()
+
+
 
 cube_vertices = (
-    (1, 1, 1),    # 0: prawy-górny-przód
-    (1, 1, 0),   # 1: prawy-górny-tył
-    (1, 0, 1),   # 2: prawy-dolny-przód
-    (1, 0, 0),  # 3: prawy-dolny-tył
-    (0, 1, 1),   # 4: lewy-górny-przód
-    (0, 1, 0),  # 5: lewy-górny-tył
-    (0, 0, 1),  # 6: lewy-dolny-przód
-    (0, 0, 0)  # 7: lewy-dolny-tył
+    (1, 1, 1), 
+    (1, 1, 0),  
+    (1, 0, 1),  
+    (1, 0, 0),  
+    (0, 1, 1),   
+    (0, 1, 0),  
+    (0, 0, 1),  
+    (0, 0, 0) 
 )
 def draw_cube():
     faces = (
-        (0, 1, 3, 2),  # prawa ściana
-        (4, 5, 7, 6),  # lewa ściana
-        (0, 1, 5, 4),  # górna ściana
-        (2, 3, 7, 6),  # dolna ściana
-        (0, 2, 6, 4),  # przednia ściana
-        (1, 3, 7, 5)   # tylna ściana
+        (0, 1, 3, 2), 
+        (4, 5, 7, 6),  
+        (0, 1, 5, 4),  
+        (2, 3, 7, 6),  
+        (0, 2, 6, 4),  
+        (1, 3, 7, 5) 
     )
     
     glBegin(GL_QUADS)
-    for i, face in enumerate(faces):
-        #glColor3fv((1,1,1))
+    for face in faces:
         for vertex in face:
             glVertex3fv(cube_vertices[vertex])
     glEnd()

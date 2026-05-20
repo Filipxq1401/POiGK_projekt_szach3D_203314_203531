@@ -35,7 +35,7 @@ class Silnik_UI():
         imgui.same_line()
 
         if imgui.button("Wykonaj"):
-            if not game_manager.wykonaj_ruch(self.ruch):
+            if not game_manager.wykonaj_ruch(self.ruch.strip()):
                 self.blad = True
             else:
                 self.blad = False
@@ -43,13 +43,13 @@ class Silnik_UI():
         if self.blad:
             imgui.text_colored([255,0,0,1],"Nieprawidlowy ruch")
         
-        historia_pusta = len(game_manager.historia_ruchow) == 0
-        imgui.begin_disabled(historia_pusta)
+        #historia_pusta = len(game_manager.historia_ruchow) == 0
+        #imgui.begin_disabled(historia_pusta)
         
         if imgui.button("Cofnij"):
             game_manager.cofnij_ruch()
             
-        imgui.end_disabled()
+        #imgui.end_disabled()
         imgui.end()
 
     def renderuj_klatke(self):

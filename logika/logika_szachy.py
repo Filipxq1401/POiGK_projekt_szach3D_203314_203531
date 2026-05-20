@@ -16,5 +16,8 @@ class Logika_szachy():
             return False
         
     def cofnij_ruch(self):
-        self.plansza.pop()
+        try:
+            self.plansza.pop()
+        except:
+            pass
         
