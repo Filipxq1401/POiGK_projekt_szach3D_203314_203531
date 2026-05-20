@@ -4,6 +4,7 @@ from pygame.locals import *
 
 from czesc_3d.silnik_3d import Silnik_3D
 from czesc_2d.silnik_ui import Silnik_UI
+from logika.logika_szachy import Logika_szachy
 
 class Game_manager():
     def __init__(self):
@@ -13,17 +14,18 @@ class Game_manager():
         self.wysokosc = info.current_h
         pygame.display.set_mode((self.szerokosc,self.wysokosc), DOUBLEBUF | OPENGL | NOFRAME)
         pygame.display.set_caption("Szachy 3D")
+        pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1)
+        pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 4)
         self.silnik_3d = Silnik_3D(self.szerokosc,self.wysokosc)
         self.silnik_ui = Silnik_UI(self.szerokosc,self.wysokosc)
+        self.logika = Logika_szachy()
 
 
     def start_gry(self):
         clock = pygame.time.Clock()
         running = True
-        kat = 0
-        skala = 0.5
         while running:
-            dt = clock.tick(60) / 1000.0
+            dt = clock.tick(100) / 1000.0
             for event in pygame.event.get():
                 self.silnik_ui.impl.process_event(event)
                 
@@ -33,18 +35,14 @@ class Game_manager():
                     if event.key == pygame.K_ESCAPE:
                         running = False
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_RIGHT]:
-                kat += dt * 15
-            if keys[pygame.K_LEFT]:
-                kat -= dt * 15
-            if keys[pygame.K_UP]:
-                skala += dt * 0.1
-            if keys[pygame.K_DOWN]:
-                skala -= dt * 0.1
-            self.silnik_ui.generuj_klatke(kat,skala)
-            self.silnik_3d.generuj_klatke(kat,skala)
+            self.silnik_ui.generuj_klatke(self)
+            self.silnik_3d.generuj_klatke(self.logika.plansza)
             self.silnik_ui.renderuj_klatke()
             pygame.display.flip()
 
         self.silnik_ui.impl.shutdown()
         pygame.quit()
+
+    def wykonaj_ruch(self,ruch):
+        # tu jeszcze będzie zarządzanie animacjami ruchu i pozycjami poszczególnych figur
+        return self.logika.wykonaj_ruch(ruch)
