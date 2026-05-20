@@ -1,10 +1,11 @@
 import pygame
 from pygame.locals import *
 
-from ..czesc_3d.silnik_3d import Silnik_3D
-from ..czesc_2d.silnik_ui import Silnik_UI
 
-class Szachy():
+from czesc_3d.silnik_3d import Silnik_3D
+from czesc_2d.silnik_ui import Silnik_UI
+
+class Game_manager():
     def __init__(self):
         pygame.init()
         info = pygame.display.Info()
@@ -15,23 +16,33 @@ class Szachy():
         self.silnik_3d = Silnik_3D(self.szerokosc,self.wysokosc)
         self.silnik_ui = Silnik_UI(self.szerokosc,self.wysokosc)
 
+
     def start_gry(self):
         clock = pygame.time.Clock()
         running = True
         kat = 0
+        skala = 0.5
         while running:
-
+            dt = clock.tick(60) / 1000.0
             for event in pygame.event.get():
                 self.silnik_ui.impl.process_event(event)
+                
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         running = False
-            dt = clock.tick(60) / 1000.0
-            kat += dt * 15
-            self.silnik_ui.generuj_klatke()
-            self.silnik_3d.generuj_klatke(kat)
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RIGHT]:
+                kat += dt * 15
+            if keys[pygame.K_LEFT]:
+                kat -= dt * 15
+            if keys[pygame.K_UP]:
+                skala += dt * 0.1
+            if keys[pygame.K_DOWN]:
+                skala -= dt * 0.1
+            self.silnik_ui.generuj_klatke(kat,skala)
+            self.silnik_3d.generuj_klatke(kat,skala)
             self.silnik_ui.renderuj_klatke()
             pygame.display.flip()
 

@@ -10,7 +10,7 @@ class Silnik_UI():
         self.io.display_size = (szer,wys)
         self.impl = PygameRenderer()
 
-    def generuj_klatke(self):
+    def generuj_klatke(self,kat,skala):
         self.impl.process_inputs()
         imgui.new_frame()
         flagi_okna = (
@@ -24,6 +24,8 @@ class Silnik_UI():
         imgui.begin("Prawy panel", flags=flagi_okna)
         fps = imgui.get_io().framerate
         imgui.text(f"FPS: {fps:.1f}")
+        imgui.text(f"kat: {kat:.4f}")
+        imgui.text(f"skala: {skala:.4f}")
         imgui.end()
 
     def renderuj_klatke(self):

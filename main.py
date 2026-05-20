@@ -1,6 +1,6 @@
-from logika.szachy import Szachy
+from logika.game_manager import Game_manager
 
 if __name__ == "__main__":
-    szachy = Szachy()
-    szachy.start_gry()
+    gra = Game_manager()
+    gra.start_gry()
 

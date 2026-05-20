@@ -8,13 +8,13 @@ import os
 
 class model_3d():
     def __init__(self, nazwa):
-        path = os.path.join("obj",nazwa)
+        path = os.path.join("czesc_3d/obj",nazwa)
         model = pywavefront.Wavefront(path, create_materials=True)
         self.material = list(model.materials.values())[0]
         self.wierzcholki = self.material.vertices
         self.tex_id = None
         if self.material.texture:
-            path_tex = os.path.join("obj",self.material.texture.file_name)
+            path_tex = os.path.join("czesc_3d/obj",self.material.texture.file_name)
             self.tex_id = self.load_tex(path_tex)
 
         self.kolor = self.material.diffuse if self.material.diffuse else [1, 1, 1]
