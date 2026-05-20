@@ -12,7 +12,7 @@ class Silnik_UI():
         self.ruch=""
         self.blad = False
 
-    def generuj_klatke(self,game_manager):
+    def generuj_klatke(self,game_manager,plansza):
         self.impl.process_inputs()
         imgui.new_frame()
         
@@ -48,7 +48,14 @@ class Silnik_UI():
         
         if imgui.button("Cofnij"):
             game_manager.cofnij_ruch()
-            
+        
+        imgui.separator()
+        imgui.text("  A  B  C  D  E  F  G  H")
+        for i in range(0,8):
+            imgui.text(str(8-i))
+            for j in range(0,8):
+                imgui.same_line()
+                imgui.text(str(plansza)[16*i + 2*j] + " ")
         #imgui.end_disabled()
         imgui.end()
 

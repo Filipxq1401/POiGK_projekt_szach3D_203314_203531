@@ -35,7 +35,7 @@ class Game_manager():
                     if event.key == pygame.K_ESCAPE:
                         running = False
             keys = pygame.key.get_pressed()
-            self.silnik_ui.generuj_klatke(self)
+            self.silnik_ui.generuj_klatke(self,self.logika.plansza)
             self.silnik_3d.generuj_klatke(self.logika.plansza)
             self.silnik_ui.renderuj_klatke()
             pygame.display.flip()
