@@ -1,84 +1,86 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import chess
+import os
 
 from czesc_3d.model_3d import model_3d
 
 class Silnik_3D():
-    def __init__(self,szer,wys):
-        self.szerokosc = 3*szer/4
+    def __init__(self, szer, wys):
+        self.szerokosc = 3 * szer / 4
         self.wysokosc = wys
+        
+        # Konfiguracja rzutowania i sceny
         glMatrixMode(GL_PROJECTION)
         gluPerspective(45, (self.szerokosc / self.wysokosc), 0.1, 50.0)
         glMatrixMode(GL_MODELVIEW)
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_MULTISAMPLE)
         glClearColor(0.05, 0.15, 0.3, 1.0)
+        
+        # Wczytanie modelu szachownicy 
         self.szachownica = model_3d("10586_Chess Board_v2_Iterations-2.obj")
         
-    
-    def generuj_klatke(self,plansza):
-        glViewport(0,0,int(self.szerokosc),int(self.wysokosc))
+        #  Ustawiane koloru
+        kolor_bialy = [0.9, 0.9, 0.8]      
+        kolor_czarny = [0.15, 0.15, 0.15]  
+        
+        # Pliki figur
+        pliki_figur = {
+            chess.PAWN: "Pawn.stl",
+            chess.ROOK: "Rook.stl",
+            chess.KNIGHT: "Knight.stl",
+            chess.BISHOP: "Bishop.stl",
+            chess.QUEEN: "Queen.stl",
+            chess.KING: "King.stl"
+        }
+        
+        # Wczytanie modeli dla białych i czarnych
+        self.modele_figur = {}
+        for typ_figury, nazwa_pliku in pliki_figur.items():
+            self.modele_figur[(typ_figury, chess.WHITE)] = model_3d(nazwa_pliku, kolor_piona=kolor_bialy)
+            self.modele_figur[(typ_figury, chess.BLACK)] = model_3d(nazwa_pliku, kolor_piona=kolor_czarny)
+        
+    def generuj_klatke(self, plansza):
+        glViewport(0, 0, int(self.szerokosc), int(self.wysokosc))
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        
         glEnable(GL_TEXTURE_2D)
         glLoadIdentity()
         glTranslatef(0.0, 0, -30.0)
         glRotatef(-50, 1, 0, 0)
+        
         kat = 0 if plansza.turn else 180
-        glRotatef(kat,0,0,1)
+        glRotatef(kat, 0, 0, 1)
+        
         glPushMatrix()
-        glScalef(0.446,0.446,0.446)
+        glScalef(0.446, 0.446, 0.446)
         self.szachownica.rysuj()
         glPopMatrix()
-        # Szachownica ma w Z 2 i po 10 w X i Y, 
-        glDisable(GL_TEXTURE_2D)
-        #glLoadIdentity()
-        #glTranslatef(0.0, 0, -35.0)
-        #glRotatef(-60, 1, 0, 0)
-        #glRotatef(kat,0,1,0)
-        #glTranslatef(-8,-8,1)
-        glScalef(1,1,3)
-        for i in range(0,8):
-            for j in range(0,8):
-                square = chess.square(j,i)
-                kolor = plansza.color_at(square)
-                glPushMatrix()
-                glTranslatef(-7.5+2*j,-7.5+2*i,0)
-                if kolor == chess.WHITE:
-                    glColor3f(1,1,1)
-                    draw_cube()
-                elif kolor == chess.BLACK:
-                    glColor3f(0,0,0)
-                    draw_cube()
-                glPopMatrix()
+        
+        glDisable(GL_TEXTURE_2D)  
+        
+        for i in range(0, 8):
+            for j in range(0, 8):
+                square = chess.square(j, i)
+                figura = plansza.piece_at(square)  # Pobranie figury z danego pola
+                
+                if figura is not None:
+                    glPushMatrix()
+                    glTranslatef(-7.05 + 2 * j, -7.0 + 2 * i, 0.9)
+                    
+                    # Pobranie modelu na podstawie (Typ Figury, Kolor)
+                    model = self.modele_figur.get((figura.piece_type, figura.color))
+                    
+                    if model:
+                        glScalef(0.05, 0.05, 0.05) # Zmiana rozmiaru
 
-
-
-cube_vertices = (
-    (1, 1, 1), 
-    (1, 1, 0),  
-    (1, 0, 1),  
-    (1, 0, 0),  
-    (0, 1, 1),   
-    (0, 1, 0),  
-    (0, 0, 1),  
-    (0, 0, 0) 
-)
-def draw_cube():
-    faces = (
-        (0, 1, 3, 2), 
-        (4, 5, 7, 6),  
-        (0, 1, 5, 4),  
-        (2, 3, 7, 6),  
-        (0, 2, 6, 4),  
-        (1, 3, 7, 5) 
-    )
-    
-    glBegin(GL_QUADS)
-    for face in faces:
-        for vertex in face:
-            glVertex3fv(cube_vertices[vertex])
-    glEnd()
-
-
-    
+                        if figura.piece_type == chess.KNIGHT: # Kierunek konia
+                            if figura.color == chess.WHITE:
+                                glRotatef(90, 0, 0, 1)    
+                            else:
+                                glRotatef(-90, 0, 0, 1)
+                        
+                        model.rysuj()
+                        
+                    glPopMatrix()

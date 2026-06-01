@@ -6,38 +6,64 @@ from OpenGL.GLU import *
 import pywavefront
 import os
 
-class model_3d():
-    def __init__(self, nazwa):
-        path = os.path.join("czesc_3d/obj",nazwa)
-        model = pywavefront.Wavefront(path, create_materials=True)
-        self.material = list(model.materials.values())[0]
-        self.wierzcholki = self.material.vertices
-        self.tex_id = None
-        if self.material.texture:
-            path_tex = os.path.join("czesc_3d/obj",self.material.texture.file_name)
-            self.tex_id = self.load_tex(path_tex)
+from stl import mesh
 
-        self.kolor = self.material.diffuse if self.material.diffuse else [1, 1, 1]
+class model_3d():
+    
+    def __init__(self, nazwa, kolor_piona=[0.7, 0.7, 0.7]):
+        # Sprawdzenie rozszerzenia
+        self.rozszerzenie = os.path.splitext(nazwa)[1].lower()
+        path = os.path.join("czesc_3d/obj", nazwa) 
+        
+        self.tex_id = None
         self.model_w_gpu = glGenLists(1)
+
+        # Sprawdzenie rodzaju pliku
+        if self.rozszerzenie == '.stl':
+            stl_mesh = mesh.Mesh.from_file(path)
+            self.vectors = stl_mesh.vectors  
+            self.normals = stl_mesh.normals  
+            self.kolor = kolor_piona
+        else:
+            model = pywavefront.Wavefront(path, create_materials=True)
+            self.material = list(model.materials.values())[0]
+            self.wierzcholki = self.material.vertices
+            if self.material.texture:
+                path_tex = os.path.join("czesc_3d/obj", self.material.texture.file_name)
+                self.tex_id = self.load_tex(path_tex)
+            self.kolor = self.material.diffuse if self.material.diffuse else [1, 1, 1]
+
         self.zapisz_do_gpu()
 
     def zapisz_do_gpu(self):
         glNewList(self.model_w_gpu, GL_COMPILE)
 
-        if self.tex_id:
-            glEnable(GL_TEXTURE_2D)
-            glBindTexture(GL_TEXTURE_2D, self.tex_id)
-            glColor3f(1.0, 1.0, 1.0)
-        else:
+        if self.rozszerzenie == '.stl':
             glDisable(GL_TEXTURE_2D)
             glColor3f(self.kolor[0], self.kolor[1], self.kolor[2])
-        glBegin(GL_TRIANGLES)
-        v = self.wierzcholki
-        for i in range(0, len(v), 8):
-            glTexCoord2f(v[i], v[i+1])
-            glNormal3f(v[i+2], v[i+3], v[i+4])
-            glVertex3f(v[i+5], v[i+6], v[i+7])
-        glEnd()
+            
+            glBegin(GL_TRIANGLES)
+            for i in range(len(self.vectors)):
+                glNormal3fv(self.normals[i])  
+                for vertex in self.vectors[i]:
+                    glVertex3fv(vertex)      
+            glEnd()
+        else:
+            if self.tex_id:
+                glEnable(GL_TEXTURE_2D)
+                glBindTexture(GL_TEXTURE_2D, self.tex_id)
+                glColor3f(1.0, 1.0, 1.0)
+            else:
+                glDisable(GL_TEXTURE_2D)
+                glColor3f(self.kolor[0], self.kolor[1], self.kolor[2])
+            
+            glBegin(GL_TRIANGLES)
+            v = self.wierzcholki
+            for i in range(0, len(v), 8):
+                glTexCoord2f(v[i], v[i+1])
+                glNormal3f(v[i+2], v[i+3], v[i+4])
+                glVertex3f(v[i+5], v[i+6], v[i+7])
+            glEnd()
 
         glEndList()
     
