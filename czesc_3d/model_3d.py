@@ -1,72 +1,71 @@
 import pygame
-
 from OpenGL.GL import *
 from OpenGL.GLU import *
-
 import pywavefront
 import os
 
-from stl import mesh
-
 class model_3d():
-    
-    def __init__(self, nazwa, kolor_piona=[0.7, 0.7, 0.7]):
-        # Sprawdzenie rozszerzenia
-        self.rozszerzenie = os.path.splitext(nazwa)[1].lower()
+    def __init__(self, nazwa, kolor_piona=[0.7, 0.7, 0.7], tekstura=None, centruj=True):
         path = os.path.join("czesc_3d/obj", nazwa) 
         
         self.tex_id = None
         self.model_w_gpu = glGenLists(1)
 
-        # Sprawdzenie rodzaju pliku
-        if self.rozszerzenie == '.stl':
-            stl_mesh = mesh.Mesh.from_file(path)
-            self.vectors = stl_mesh.vectors  
-            self.normals = stl_mesh.normals  
-            self.kolor = kolor_piona
-        else:
-            model = pywavefront.Wavefront(path, create_materials=True)
-            self.material = list(model.materials.values())[0]
-            self.wierzcholki = self.material.vertices
-            if self.material.texture:
-                path_tex = os.path.join("czesc_3d/obj", self.material.texture.file_name)
+        model = pywavefront.Wavefront(path, create_materials=True)
+        self.material = list(model.materials.values())[0]
+        self.wierzcholki = list(self.material.vertices) 
+        
+        # --- centorowanie modelu ---
+        if centruj and self.wierzcholki:
+            x_coords = [self.wierzcholki[i+5] for i in range(0, len(self.wierzcholki), 8)]
+            y_coords = [self.wierzcholki[i+6] for i in range(0, len(self.wierzcholki), 8)]
+            z_coords = [self.wierzcholki[i+7] for i in range(0, len(self.wierzcholki), 8)]
+            
+            # Szukanie środka
+            srodek_x = (min(x_coords) + max(x_coords)) / 2
+            srodek_y = (min(y_coords) + max(y_coords)) / 2
+            najnizszy_z = min(z_coords) # Spód figury
+            
+            # Środkowanie figur
+            for i in range(0, len(self.wierzcholki), 8):
+                self.wierzcholki[i+5] -= srodek_x
+                self.wierzcholki[i+6] -= srodek_y
+                self.wierzcholki[i+7] -= najnizszy_z
+        # ----------------------------------------------------
+        
+        # Ładowanie tekstury
+        if tekstura:
+            path_tex = os.path.join("czesc_3d/obj", tekstura)
+            if os.path.exists(path_tex):
                 self.tex_id = self.load_tex(path_tex)
-            self.kolor = self.material.diffuse if self.material.diffuse else [1, 1, 1]
-
+        elif self.material.texture:
+            path_tex = os.path.join("czesc_3d/obj", self.material.texture.file_name)
+            if os.path.exists(path_tex):
+                self.tex_id = self.load_tex(path_tex)
+        
+        self.kolor = kolor_piona
         self.zapisz_do_gpu()
 
     def zapisz_do_gpu(self):
         glNewList(self.model_w_gpu, GL_COMPILE)
 
-        if self.rozszerzenie == '.stl':
+        if self.tex_id:
+            glEnable(GL_TEXTURE_2D)
+            glBindTexture(GL_TEXTURE_2D, self.tex_id)
+            glColor3f(1.0, 1.0, 1.0) 
+        else:
             glDisable(GL_TEXTURE_2D)
             glColor3f(self.kolor[0], self.kolor[1], self.kolor[2])
-            
-            glBegin(GL_TRIANGLES)
-            for i in range(len(self.vectors)):
-                glNormal3fv(self.normals[i])  
-                for vertex in self.vectors[i]:
-                    glVertex3fv(vertex)      
-            glEnd()
-        else:
-            if self.tex_id:
-                glEnable(GL_TEXTURE_2D)
-                glBindTexture(GL_TEXTURE_2D, self.tex_id)
-                glColor3f(1.0, 1.0, 1.0)
-            else:
-                glDisable(GL_TEXTURE_2D)
-                glColor3f(self.kolor[0], self.kolor[1], self.kolor[2])
-            
-            glBegin(GL_TRIANGLES)
-            v = self.wierzcholki
-            for i in range(0, len(v), 8):
-                glTexCoord2f(v[i], v[i+1])
-                glNormal3f(v[i+2], v[i+3], v[i+4])
-                glVertex3f(v[i+5], v[i+6], v[i+7])
-            glEnd()
+        
+        glBegin(GL_TRIANGLES)
+        v = self.wierzcholki
+        for i in range(0, len(v), 8):
+            glTexCoord2f(v[i], v[i+1])
+            glNormal3f(v[i+2], v[i+3], v[i+4])
+            glVertex3f(v[i+5], v[i+6], v[i+7])
+        glEnd()
 
         glEndList()
-    
     
     def load_tex(self, nazwa):
         tex = pygame.image.load(nazwa)
