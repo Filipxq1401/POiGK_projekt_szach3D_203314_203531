@@ -25,7 +25,7 @@ class Game_manager():
         clock = pygame.time.Clock()
         running = True
         while running:
-            dt = clock.tick(100) / 1000.0
+            dt = clock.tick(100) / 1000.0 # czas ruchu kamery
             for event in pygame.event.get():
                 self.silnik_ui.impl.process_event(event)
                 
@@ -36,7 +36,7 @@ class Game_manager():
                         running = False
             keys = pygame.key.get_pressed()
             self.silnik_ui.generuj_klatke(self,self.logika.plansza)
-            self.silnik_3d.generuj_klatke(self.logika.plansza)
+            self.silnik_3d.generuj_klatke(self.logika.plansza,dt)
             self.silnik_ui.renderuj_klatke()
             pygame.display.flip()
 

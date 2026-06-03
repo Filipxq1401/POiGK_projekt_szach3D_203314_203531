@@ -20,8 +20,10 @@ class Silnik_3D():
         
         # Wczytanie modelu szachownicy 
         self.szachownica = model_3d("10586_Chess Board_v2_Iterations-2.obj")
+
+        self.aktualny_kat = 0
         
-        #  Ustawiane koloru
+        # Ustawianie koloru
         kolor_bialy = [0.9, 0.9, 0.8]      
         kolor_czarny = [0.15, 0.15, 0.15]  
         
@@ -41,7 +43,7 @@ class Silnik_3D():
             self.modele_figur[(typ_figury, chess.WHITE)] = model_3d(nazwa_pliku, kolor_piona=kolor_bialy)
             self.modele_figur[(typ_figury, chess.BLACK)] = model_3d(nazwa_pliku, kolor_piona=kolor_czarny)
         
-    def generuj_klatke(self, plansza):
+    def generuj_klatke(self, plansza, dt):
         glViewport(0, 0, int(self.szerokosc), int(self.wysokosc))
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         
@@ -50,8 +52,22 @@ class Silnik_3D():
         glTranslatef(0.0, 0, -30.0)
         glRotatef(-50, 1, 0, 0)
         
-        kat = 0 if plansza.turn else 180
-        glRotatef(kat, 0, 0, 1)
+        # ---  Obrót kamery ---
+        cel_kat = 0.0 if plansza.turn else 180.0
+        
+        roznica = cel_kat - self.aktualny_kat
+        
+        predkosc = 180.0 
+        
+        if roznica != 0:
+            krok = predkosc * dt
+            if abs(roznica) <= krok:
+                self.aktualny_kat = cel_kat
+            else:
+                self.aktualny_kat += krok if roznica > 0 else -krok
+        
+        glRotatef(self.aktualny_kat, 0, 0, 1)
+        # --------------------------------------
         
         glPushMatrix()
         glScalef(0.446, 0.446, 0.446)
@@ -60,6 +76,7 @@ class Silnik_3D():
         
         glDisable(GL_TEXTURE_2D)  
         
+        # ---------------------------- Wyświetlanie figur ----------------------------------------
         for i in range(0, 8):
             for j in range(0, 8):
                 square = chess.square(j, i)
@@ -82,5 +99,5 @@ class Silnik_3D():
                                 glRotatef(-90, 0, 0, 1)
                         
                         model.rysuj()
-                        
                     glPopMatrix()
+        # ------------------------------------------------------------------------------------------
