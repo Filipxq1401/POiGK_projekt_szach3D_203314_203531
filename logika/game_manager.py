@@ -87,7 +87,7 @@ class Game_manager():
                 self.silnik_3d.wyswietl_poruszajace(poruszajace)
             zbite = self.logika.gracz_bialy.zbite_figury + self.logika.gracz_czarny.zbite_figury
             self.silnik_3d.wyswietl_zbite(zbite)
-            self.silnik_ui.renderuj_zegary(self.logika.gracz_bialy.czas, self.logika.gracz_czarny.czas)
+            #self.silnik_ui.renderuj_zegary(self.logika.gracz_bialy.czas, self.logika.gracz_czarny.czas)
             self.silnik_ui.renderuj_klatke()
 
             

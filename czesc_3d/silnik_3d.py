@@ -77,13 +77,15 @@ class Silnik_3D():
             else:
                 figura.wyswietl()
             glPopMatrix()
+    
     def wyswietl_poruszajace(self,figury):
         for figura in figury:
             if figura:
                 x,y,z = figura.xyz_aktualne
                 glPushMatrix()
                 glTranslatef(x,y,z)
-                glScalef(0.3, 0.3, 0.3)
+                glScalef(5.5, 5.5, 5.5) 
+                glRotatef(90, 1, 0, 0)
                 figura.wyswietl()
                 glPopMatrix()
         
