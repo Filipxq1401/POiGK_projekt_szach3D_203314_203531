@@ -113,7 +113,12 @@ class Logika_szachy():
         ruch_chess = chess.Move(chess.square(k_akt,w_akt),chess.square(k_doc,w_doc))
         self.plansza_wlasna[k_akt][w_akt].porusz(ruch[1])
         if ruch[2] == "bicie":
-            self.plansza_wlasna[k_doc][w_doc].zbij()
+            figura_do_zbicia = self.plansza_wlasna[k_doc][w_doc]
+            if figura_do_zbicia:
+                gracz = self.gracz_bialy if figura_do_zbicia.kolor else self.gracz_czarny
+                
+                gracz.zbite_figury.append(figura_do_zbicia)
+                figura_do_zbicia.zbij(len(gracz.zbite_figury) - 1)
         self.wykonaj_ruch(self.plansza.san(ruch_chess))
         self.wybierz_figure(None)
         self.stworz_nowa_plansze()
@@ -135,6 +140,7 @@ class Logika_szachy():
 class Gracz():
     def __init__(self, kolor):
         self.kolor = kolor
+        self.czas = 300
         self.piony = [pionek(self.kolor,i) for i in range(0,8)]
         self.krol = krol(self.kolor)
         self.hetman = hetman(self.kolor)
@@ -142,7 +148,7 @@ class Gracz():
         self.wieze = [wieza(self.kolor,wiersz), wieza(self.kolor,wiersz + 7)]
         self.skoczki = [skoczek(self.kolor,wiersz + 1), skoczek(self.kolor,wiersz + 6)]
         self.gonce = [goniec(self.kolor,wiersz + 2), goniec(self.kolor,wiersz + 5)]
-        self.zbite_figury = None
+        self.zbite_figury = []
         self.figury_na_planszy = self.piony + [self.krol, self.hetman] + self.wieze + self.skoczki + self.gonce
         self.czy_w_szachu = False
 

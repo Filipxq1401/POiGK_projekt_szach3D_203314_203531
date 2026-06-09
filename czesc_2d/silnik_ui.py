@@ -1,6 +1,5 @@
 from imgui_bundle import imgui
 from imgui_bundle.python_backends.pygame_backend import PygameRenderer
-
 class Silnik_UI():
     def __init__(self, szer, wys):
         self.szerokosc = szer / 4
