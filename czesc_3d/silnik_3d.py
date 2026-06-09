@@ -121,3 +121,46 @@ class Silnik_3D():
             return 10*wiersz + kolumna
         
         return
+    
+    def podswietl_pola(self,pola):
+        for pole in pola:
+            pozycja = pole[0]
+            R,G,B = pole[1:4]
+            wiersz = pozycja // 10
+            kolumna = pozycja % 10
+            glPushMatrix()
+            glScalef(1,1,0.5)
+            glTranslatef(-7 + 2*kolumna,-7 + 2*wiersz,1)
+            wyswietl_szescian([R,G,B,0.5])
+            glPopMatrix()
+
+
+
+def wyswietl_szescian(kolor):
+    wierzcholki = [
+        (1, 1, 1),
+        (1, 1, -1),
+        (1, -1, 1),
+        (1, -1, -1),
+        (-1, 1, 1),
+        (-1, 1, -1),
+        (-1, -1, 1),
+        (-1, -1, -1)]
+    sciany = [
+        (0, 1, 3, 2),
+        (4, 5, 7, 6),
+        (0, 1, 5, 4),
+        (2, 3, 7, 6),
+        (0, 2, 6, 4),
+        (1, 3, 7, 5)
+    ]
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+    glDisable(GL_TEXTURE_2D)
+    glBegin(GL_QUADS)
+    glColor4fv(kolor)
+    for sciana in sciany:
+        for wierzholek in sciana:
+            glVertex3fv(wierzcholki[wierzholek])
+    glEnd()
+    

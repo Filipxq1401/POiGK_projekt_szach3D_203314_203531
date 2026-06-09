@@ -20,12 +20,12 @@ class Game_manager():
         self.silnik_3d = Silnik_3D(self.szerokosc,self.wysokosc)
         self.silnik_ui = Silnik_UI(self.szerokosc,self.wysokosc)
         self.logika = Logika_szachy()
+        self.stan = StanProgramu.Normalne
 
 
     def start_gry(self):
         clock = pygame.time.Clock()
         running = True
-        
         while running:
             kliknete_pole = None
             dt = clock.tick(120) / 1000.0 # czas ruchu kamery
@@ -40,37 +40,38 @@ class Game_manager():
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                        kliknete_pole = self.silnik_3d.znajdz_pole(event.pos)
-                    
-            aktualne_pole = self.silnik_3d.znajdz_pole(pygame.mouse.get_pos()) # pole na którym jest myszka
-            #keys = pygame.key.get_pressed()
-            pola_do_podswietlenia = self.logika.przetworz_myszke(kliknete_pole,aktualne_pole)
-            plansza = self.logika.get_plansza()
-            plansza_str = ""
-            for i in range(8):
-                for j in range(8):
-                    kolumna = j
-                    wiersz = 7 - i
-                    pozycja = 10*wiersz+kolumna
-                    if pola_do_podswietlenia:
-                        tak = True
-                        for pole in pola_do_podswietlenia:
-                            if pole[0] == pozycja:
-                                plansza_str += "-" + str(plansza[kolumna][wiersz])[0] + "-"
-                                tak = False
-                                break
-                        if tak:
-                            plansza_str += " " + str(plansza[kolumna][wiersz])[0] + " "
-                    else:
-                        plansza_str += " " + str(plansza[kolumna][wiersz])[0] + " "
-                plansza_str += "\n" 
-            #print(plansza_str)
-            self.silnik_ui.generuj_klatke(self,self.logika.plansza,plansza_str)
+            
+            match self.stan:
+                case StanProgramu.Normalne:
+                    aktualne_pole = self.silnik_3d.znajdz_pole(pygame.mouse.get_pos()) # pole na którym jest myszka
+                    pola_do_podswietlenia = self.logika.przetworz_myszke(kliknete_pole,aktualne_pole)
+                    plansza = self.logika.get_plansza()
+                    plansza_str = ""
+                    for i in range(8):
+                        for j in range(8):
+                            kolumna = j
+                            wiersz = 7 - i
+                            pozycja = 10*wiersz+kolumna
+                            if pola_do_podswietlenia:
+                                tak = True
+                                for pole in pola_do_podswietlenia:
+                                    if pole[0] == pozycja:
+                                        plansza_str += "-" + str(plansza[kolumna][wiersz])[0] + "-"
+                                        tak = False
+                                        break
+                                if tak:
+                                    plansza_str += " " + str(plansza[kolumna][wiersz])[0] + " "
+                            else:
+                                plansza_str += " " + str(plansza[kolumna][wiersz])[0] + " "
+                        plansza_str += "\n" 
+                    self.silnik_ui.generuj_klatke(self,self.logika.plansza,plansza_str)
 
-            self.silnik_3d.ustaw_kamere(self.logika.plansza.turn,dt)
-            self.silnik_3d.wyswietl_plansze()
-            #self.silnik_3d.podswietl_pola(pola_do_podswietlenia)
+                    self.silnik_3d.ustaw_kamere(self.logika.plansza.turn,dt)
+                    self.silnik_3d.wyswietl_plansze()
+                    self.silnik_3d.podswietl_pola(pola_do_podswietlenia)
 
-            self.silnik_ui.renderuj_klatke()
+                    self.silnik_ui.renderuj_klatke()
+            
             
             pygame.display.flip()
 
@@ -90,3 +91,12 @@ class Game_manager():
 # w szachu i brak legalnych ruchów -> koniec gry, wygrywa gracz który zrobił ruch
 # nie w szachi i brak legalnych ruchów -> koniec gry, remis
 # można iść dalej
+from enum import Enum, auto
+
+class StanProgramu(Enum):
+    Normalne = auto()
+    Poruszanie_figury = auto()
+    Menu_promocji = auto()
+    Obracanie_kamery = auto()
+    Koniec = auto()
+    
