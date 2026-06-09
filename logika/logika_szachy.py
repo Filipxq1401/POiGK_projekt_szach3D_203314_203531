@@ -204,6 +204,8 @@ class Logika_szachy():
 
     def get_poruszajace_figury(self):
         return self.gracz_bialy.get_poruszajace() + self.gracz_czarny.get_poruszajace()
+    def get_zbite(self):
+        return self.gracz_bialy.get_zbite() + self.gracz_czarny.get_zbite()
         
 
         
@@ -232,6 +234,14 @@ class Gracz():
 
     def get_poruszajace(self):
         return self.figury_w_ruchu + [self.figura_zbijana]
+    
+    def get_zbite(self):
+        figury = []
+        if self.zbite_figury:
+            for figura in self.zbite_figury:
+                if not figura.czy_rusza:
+                    figury.append(figura)
+        return figury
     
     def get_figury_na_planszy(self):
         figury = []
