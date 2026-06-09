@@ -12,7 +12,7 @@ class Silnik_UI():
         self.ruch=""
         self.blad = False
 
-    def generuj_klatke(self,game_manager,plansza):
+    def generuj_klatke(self,game_manager,plansza,plansza_str):
         self.impl.process_inputs()
         imgui.new_frame()
         
@@ -57,6 +57,7 @@ class Silnik_UI():
                 imgui.same_line()
                 imgui.text(str(plansza)[16*i + 2*j] + " ")
         #imgui.end_disabled()
+        imgui.text(plansza_str)
         imgui.end()
 
     def renderuj_klatke(self):

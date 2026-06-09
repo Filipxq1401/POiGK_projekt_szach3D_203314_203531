@@ -5,7 +5,7 @@ import pywavefront
 import os
 
 class model_3d():
-    def __init__(self, nazwa, kolor_piona=[0.7, 0.7, 0.7], tekstura=None, centruj=True):
+    def __init__(self, nazwa, kolor_piona=[0.7, 0.7, 0.7], tekstura=None, centruj=True, tekstura_id = None):
         path = os.path.join("czesc_3d/obj", nazwa) 
         
         self.tex_id = None
@@ -42,6 +42,8 @@ class model_3d():
             path_tex = os.path.join("czesc_3d/obj", self.material.texture.file_name)
             if os.path.exists(path_tex):
                 self.tex_id = self.load_tex(path_tex)
+        elif tekstura_id:
+            self.tex_id = tekstura_id
         
         self.kolor = kolor_piona
         self.zapisz_do_gpu()
