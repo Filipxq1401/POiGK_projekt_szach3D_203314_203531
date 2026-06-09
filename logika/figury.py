@@ -1,6 +1,6 @@
 from czesc_3d.model_3d import model_3d
 import numpy as np
-PREDKOSC = 4
+PREDKOSC = 10
 class figura:
     model_bialy = None
     model_czarny = None
@@ -96,28 +96,44 @@ class figura:
                     wolne = False #pole zajęte przez inna figure tego samego koloru, nie możliwe dalsze przesunięcie w tą strone
         return ruchy
     
-    def rozpocznij_ruch(self,docelowe):
+    def rozpocznij_ruch(self, docelowe):
         self.czy_rusza = True
         klasa = self.__class__
-        self.xyz_aktualne = np.array(klasa.get_xyz_na_planszy(self))
+        self.xyz_aktualne = np.array(klasa.get_xyz_na_planszy(self), dtype=float)
         self.pozycja = docelowe
-        self.xyz_docelowe = np.array(klasa.get_xyz_na_planszy(self))
-
-    def rozpocznij_zbijanie(self):
+        self.xyz_docelowe = np.array(klasa.get_xyz_na_planszy(self), dtype=float)
+        self.faza = 2
+        
+    def rozpocznij_zbijanie(self, docelowy_xyz):
         self.czy_rusza = True
         klasa = self.__class__
-        self.xyz_aktualne = np.array(klasa.get_xyz_na_planszy(self))
-        self.xyz_docelowe = np.array([20, 20, 20])
+        self.xyz_aktualne = np.array(klasa.get_xyz_na_planszy(self), dtype=float)
+        self.xyz_docelowe = np.array(docelowy_xyz, dtype=float)
+        self.xyz_posrednie = self.xyz_aktualne.copy()
+        self.xyz_posrednie[2] += 5.0
+        self.faza = 1
 
-    def przesun(self,dt):
+    def przesun(self, dt):
         try:
-            roznica = self.xyz_docelowe - self.xyz_aktualne
+            if self.faza == 1:
+                cel = self.xyz_posrednie
+            else:
+                cel = self.xyz_docelowe
+
+            roznica = cel - self.xyz_aktualne
             roznica_dlugosc = np.linalg.norm(roznica)
-            kierunek = roznica / roznica_dlugosc # wektor jednostkowy
+            kierunek = roznica / roznica_dlugosc
             przesuniecie = kierunek * PREDKOSC * dt
+
             if roznica_dlugosc < np.linalg.norm(przesuniecie):
-                self.czy_rusza = False
-                return True
+                self.xyz_aktualne = cel.copy()
+                if self.faza == 1:
+                    self.faza = 2  # przejdź do fazy 2
+                    return False
+                else:
+                    self.czy_rusza = False
+                    return True
+
             self.xyz_aktualne += kierunek * PREDKOSC * dt
             return False
         except:

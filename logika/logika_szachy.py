@@ -296,17 +296,33 @@ class Gracz():
         else:
             return True
 
-    def rozpocznij_zbicie(self,plansza,ruch):
+    def rozpocznij_zbicie(self, plansza, ruch):
         if ruch[2] == "bicie":
             self.figura_zbijana = plansza[ruch[1]%10][ruch[1]//10]
         elif ruch[2] == "przelot":
             self.figura_zbijana = plansza[ruch[1]%10][ruch[0]//10]
         else:
             return
+
         self.zbite_figury.append(self.figura_zbijana)
         self.figura_zbijana.pozycja_zbitego = self.ile_zbitych
         self.ile_zbitych += 1
-        for i,figura in enumerate(self.figury_na_planszy):
+
+        for i, figura in enumerate(self.figury_na_planszy):
             if figura == self.figura_zbijana:
                 self.figury_na_planszy.pop(i)
-        self.figura_zbijana.rozpocznij_zbijanie()
+
+        # Oblicz docelowy xyz 
+        idx = self.figura_zbijana.pozycja_zbitego
+        kolumna = idx % 2
+        wiersz = idx // 2
+
+        if self.figura_zbijana.kolor == False:  # czarna figura zbita 
+            x_offset = 11 + (kolumna * 1.5)
+            y_offset = -7 + (wiersz * 2)
+        else:  # biała figura zbita 
+            x_offset = -12 - (-kolumna * 1.5)
+            y_offset = 7 + (-wiersz * 2)
+
+        docelowy_xyz = [x_offset, y_offset, 0]
+        self.figura_zbijana.rozpocznij_zbijanie(docelowy_xyz)
