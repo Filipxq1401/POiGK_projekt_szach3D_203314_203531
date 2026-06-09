@@ -15,24 +15,31 @@ class figura:
         self.pozycja_zbitego = None
         self.kierunki = []
         #--------------- wczytanie modelu i tekstury ---------------------
-        #if kolor:
-        #    if klasa.model_bialy is None:
-        #        if figura.tex_id_bialy is None:
-        #            klasa.model_bialy = model_3d(klasa.plik_modelu,tekstura="białe_piony.jpg")
-        #            figura.tex_id_bialy = klasa.model_bialy.tex_id
-        #        else:
-        #            klasa.model_bialy = model_3d(klasa.plik_modelu,tekstura_id = figura.tex_id_bialy)
-#
-        #    else:
-        #        if klasa.model_czarny is None:
-        #            if figura.tex_id_czarny is None:
-        #                klasa.model_czarny = model_3d(klasa.plik_modelu,tekstura="Czarne_piony.jpg")
-        #                figura.tex_id_czarny = klasa.model_czarny.tex_id
-        #            else:
-        #                klasa.model_czarny = model_3d(klasa.plik_modelu,tekstura_id = figura.tex_id_czarny)
+        if kolor:
+            if klasa.model_bialy is None:
+                if figura.tex_id_bialy is None:
+                    klasa.model_bialy = model_3d(klasa.plik_modelu,tekstura="białe_piony.jpg")
+                    figura.tex_id_bialy = klasa.model_bialy.tex_id
+                else:
+                    klasa.model_bialy = model_3d(klasa.plik_modelu,tekstura_id = figura.tex_id_bialy)   
+        else:
+            if klasa.model_czarny is None:
+                if figura.tex_id_czarny is None:
+                    klasa.model_czarny = model_3d(klasa.plik_modelu,tekstura="Czarne_piony.jpg")
+                    figura.tex_id_czarny = klasa.model_czarny.tex_id
+                else:
+                    klasa.model_czarny = model_3d(klasa.plik_modelu,tekstura_id = figura.tex_id_czarny)
 
     def get_kolor(self):
         return self.kolor
+    
+    def wyswietl(self):
+        klasa = self.__class__
+        if(self.kolor):
+            klasa.model_bialy.rysuj()
+        else:
+            klasa.model_czarny.rysuj()
+    
     def porusz(self,nowa_pozycja):
         self.pozycja = nowa_pozycja
     def zbij(self):
@@ -81,7 +88,6 @@ class pionek(figura):
             pozycja = 60 + kolumna
         super().__init__(kolor,pozycja)
         
-        self.moze_2 = True #czy może się ruszyć o 2
         self.czy_do_przelotu = False #w jakiej turze ruszył się o 2, do bicia w przelocie
     
     def get_czy_przelot(self):
@@ -95,11 +101,12 @@ class pionek(figura):
 
         ruchy = []
         strona_ruchu = 1 if self.kolor else -1
+        wiersz_do_2 = 1 if self.kolor else 6
         if wiersz == 0 or wiersz == 7:
             return ruchy
         if plansza[kolumna][wiersz + strona_ruchu] is None:
             ruchy.append([wiersz*10+kolumna, (wiersz + strona_ruchu)*10+kolumna, "normalny"])
-        if self.moze_2 and plansza[kolumna][wiersz + 2*strona_ruchu] is None:
+        if wiersz == wiersz_do_2 and plansza[kolumna][wiersz + strona_ruchu] is None and plansza[kolumna][wiersz + 2*strona_ruchu] is None:
             ruchy.append([wiersz*10+kolumna, (wiersz + 2*strona_ruchu)*10+kolumna, "podwojny"])
         for strona in [-1,1]:
             kolumna_sprawdzana = kolumna + strona
@@ -117,7 +124,7 @@ class krol(figura):
             pozycja = 4
         else:
             pozycja = 74
-        super().__init__(kolor,pozycja)
+        super().__init__(kolor, pozycja)
 
         self.czy_roszada = True # czy może zrobić roszadę
     

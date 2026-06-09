@@ -69,7 +69,19 @@ class Silnik_3D():
         self.szachownica.rysuj()
         glPopMatrix()
         
-    def wyswietl_figur(self,plansza):
+    def wyswietl_figur_plansza(self,figury):
+        for figura in figury:
+            pozycja = figura.get_pozycja()
+            wiersz = pozycja // 10
+            kolumna = pozycja % 10
+            glPushMatrix()
+            glTranslatef(-7 + 2*kolumna,-7 + 2*wiersz,1)
+            glScalef(0.3, 0.3, 0.3) 
+            if figura.model_czarny is None or figura.model_bialy is None:
+                print(figura)
+            else:
+                figura.wyswietl()
+            glPopMatrix()
         # ---------------------------- Wyświetlanie figur ----------------------------------------
         #for i in range(0, 8):
         #    for j in range(0, 8):
@@ -86,7 +98,7 @@ class Silnik_3D():
         #                glScalef(0.3, 0.3, 0.3) 
         #                model.rysuj()
         #            glPopMatrix()
-        pass
+        
 
     def znajdz_pole(self, pozycja):
         x ,y = pozycja

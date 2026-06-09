@@ -69,6 +69,7 @@ class Game_manager():
                     self.silnik_3d.ustaw_kamere(self.logika.plansza.turn,dt)
                     self.silnik_3d.wyswietl_plansze()
                     self.silnik_3d.podswietl_pola(pola_do_podswietlenia)
+                    self.silnik_3d.wyswietl_figur_plansza(self.logika.get_figury_na_planszy())
 
                     self.silnik_ui.renderuj_klatke()
             

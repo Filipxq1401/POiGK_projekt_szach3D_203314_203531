@@ -123,6 +123,8 @@ class Logika_szachy():
 
     def get_plansza(self):
         return self.plansza_wlasna
+    def get_figury_na_planszy(self):
+        return self.gracz_bialy.get_figury_na_planszy() + self.gracz_czarny.get_figury_na_planszy()
 
         
 
