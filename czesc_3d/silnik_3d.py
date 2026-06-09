@@ -3,6 +3,7 @@ from OpenGL.GLU import *
 import chess
 import os
 import numpy as np
+from logika.figury import krol, pionek, wieza, goniec, skoczek, hetman
 from czesc_3d.model_3d import model_3d
 
 class Silnik_3D():
@@ -20,14 +21,6 @@ class Silnik_3D():
         self.szachownica = model_3d("10586_Chess Board_v2_Iterations-2.obj", centruj=True)
 
         
-        pliki_figur = {
-            chess.PAWN:   "Pawn.obj",
-            chess.ROOK:   "Rook.obj",
-            chess.KNIGHT: "Knight.obj",
-            chess.BISHOP: "Bishop.obj",
-            chess.QUEEN:  "Queen.obj",
-            chess.KING:   "King.obj"
-        }
         
         # Wczytywanie texutur figur (możliwe że nie wchodze całe, będzie trzeba pobrać orginalengo dla każdej figury)
         #self.modele_figur = {}
@@ -40,12 +33,11 @@ class Silnik_3D():
         glViewport(0, 0, int(self.szerokosc), int(self.wysokosc))
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
-        kat
 
         kamera_x = 0.0
         kamera_y = -30 * np.sin(np.deg2rad(50))
         kamera_z = 30 * np.cos(np.deg2rad(50))
-        
+            
         gluLookAt(kamera_x, kamera_y, kamera_z,  0.0, 0.0, 1.0,  0.0, 0.0, 1.0)
         
         glRotatef(kat, 0, 0, 1)
@@ -57,29 +49,67 @@ class Silnik_3D():
         self.szachownica.rysuj()
         glPopMatrix()
         
-    def wyswietl_figur_plansza(self,figury):
+    def wyswietl_figur_plansza(self, figury):
         for figura in figury:
+            if figura.get_pozycja() == 88:
+                continue
+
             pozycja = figura.get_pozycja()
             wiersz = pozycja // 10
             kolumna = pozycja % 10
+            
+            # Obliczenia pozycji
+            wysokosc_z = 2.0
+            if isinstance(figura, krol):
+                wysokosc_z += 0.25
+                
+            offset_y = 0.5
+            if not isinstance(figura, pionek):
+                offset_y += 0.3 if figura.kolor else +0.3
+            
             glPushMatrix()
-            glTranslatef(-7 + 2*kolumna,-7 + 2*wiersz,1)
-            glScalef(0.3, 0.3, 0.3) 
+            glTranslatef(-7 + 2*kolumna, -7 + 2*wiersz + offset_y, wysokosc_z)
+            glScalef(5.5, 5.5, 5.5) 
+            glRotatef(90, 1, 0, 0)
+            
             if figura.model_czarny is None or figura.model_bialy is None:
                 print(figura)
             else:
                 figura.wyswietl()
             glPopMatrix()
-    
     def wyswietl_poruszajace(self,figury):
         for figura in figury:
             if figura:
                 x,y,z = figura.xyz_aktualne
                 glPushMatrix()
-                glTranslatef(x,y,1)
+                glTranslatef(x,y,z)
                 glScalef(0.3, 0.3, 0.3)
                 figura.wyswietl()
                 glPopMatrix()
+        
+    def wyswietl_zbite(self, zbite_figury):
+        for figura in zbite_figury:
+            idx = figura.pozycja_zbitego
+            kolumna = idx % 2       
+            wiersz = idx // 2       
+            
+            glPushMatrix()
+            
+            if figura.kolor == False: 
+                x_offset = 11 + (kolumna * 1.5) 
+                y_offset = -7 + (wiersz * 2) 
+            else: 
+                x_offset = -12 - (-kolumna * 1.5) 
+                y_offset = 7 + (-wiersz * 2)
+            
+            
+            glTranslatef(x_offset, y_offset, 0)
+            
+            glScalef(5.5, 5.5, 5.5) 
+            glRotatef(90, 1, 0, 0)
+            
+            figura.wyswietl()
+            glPopMatrix()
 
     def znajdz_pole(self, pozycja):
         x ,y = pozycja

@@ -31,6 +31,13 @@ class Game_manager():
             kliknete_pole = None
             dt = clock.tick(120) / 1000.0 # czas ruchu kamery
             #----------------- Obsługa eventów -----------------
+           
+            aktywny_gracz = self.logika.gracz_bialy if self.logika.tura else self.logika.gracz_czarny
+            if aktywny_gracz.czas > 0:
+                aktywny_gracz.czas -= dt
+            else:
+                print("Czas minął!")
+            
             for event in pygame.event.get():
                 self.silnik_ui.impl.process_event(event)
                 if event.type == pygame.QUIT:
@@ -78,6 +85,9 @@ class Game_manager():
             self.silnik_3d.wyswietl_figur_plansza(self.logika.get_figury_na_planszy())
             if poruszajace:
                 self.silnik_3d.wyswietl_poruszajace(poruszajace)
+            zbite = self.logika.gracz_bialy.zbite_figury + self.logika.gracz_czarny.zbite_figury
+            self.silnik_3d.wyswietl_zbite(zbite)
+            self.silnik_ui.renderuj_zegary(self.logika.gracz_bialy.czas, self.logika.gracz_czarny.czas)
             self.silnik_ui.renderuj_klatke()
 
             

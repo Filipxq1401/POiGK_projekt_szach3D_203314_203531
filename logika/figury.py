@@ -4,7 +4,8 @@ PREDKOSC = 4
 class figura:
     model_bialy = None
     model_czarny = None
-    plik_modelu = ""
+    plik_bialy = ""
+    plik_czarny = ""
     tex_id_bialy = None
     tex_id_czarny = None
 
@@ -19,21 +20,22 @@ class figura:
         self.czy_rusza = False
         self.pozycja_zbitego = None
         self.kierunki = []
+        
         #--------------- wczytanie modelu i tekstury ---------------------
         if kolor:
             if klasa.model_bialy is None:
                 if figura.tex_id_bialy is None:
-                    klasa.model_bialy = model_3d(klasa.plik_modelu,tekstura="białe_piony.jpg")
+                    klasa.model_bialy = model_3d(klasa.plik_bialy, tekstura="White_Base_color.png", centruj=True)
                     figura.tex_id_bialy = klasa.model_bialy.tex_id
                 else:
-                    klasa.model_bialy = model_3d(klasa.plik_modelu,tekstura_id = figura.tex_id_bialy)   
+                    klasa.model_bialy = model_3d(klasa.plik_bialy, tekstura_id=figura.tex_id_bialy, centruj=True)   
         else:
             if klasa.model_czarny is None:
                 if figura.tex_id_czarny is None:
-                    klasa.model_czarny = model_3d(klasa.plik_modelu,tekstura="Czarne_piony.jpg")
+                    klasa.model_czarny = model_3d(klasa.plik_czarny, tekstura="Black_Base_color.png", centruj=True)
                     figura.tex_id_czarny = klasa.model_czarny.tex_id
                 else:
-                    klasa.model_czarny = model_3d(klasa.plik_modelu,tekstura_id = figura.tex_id_czarny)
+                    klasa.model_czarny = model_3d(klasa.plik_czarny, tekstura_id=figura.tex_id_czarny, centruj=True)
 
     def get_kolor(self):
         return self.kolor
@@ -66,11 +68,9 @@ class figura:
 
 
     def __str__(self):
-        klasa = self.__class__
-        nazwa = klasa.plik_modelu
-        if(self.kolor):
-            nazwa = nazwa.lower()
-        return nazwa
+        klasa = self.__class__.__name__
+        skrot = klasa[0].upper() if klasa != "skoczek" else "N" #
+        return skrot if self.kolor else skrot.lower()
     def ruchy_pseudo_legalne(self, plansza):
         if self.pozycja == 88:
             return []
@@ -130,7 +130,8 @@ class figura:
 
     
 class pionek(figura):
-    plik_modelu = "Pawn.obj"
+    plik_bialy = "White_pawn.obj"
+    plik_czarny = "Black_pawn.obj"
     def __init__(self, kolor, kolumna):
         if kolor:
             pozycja = 10 + kolumna
@@ -172,7 +173,8 @@ class pionek(figura):
         return ruchy
 
 class krol(figura):
-    plik_modelu = "King.obj"
+    plik_bialy = "White_king.obj"
+    plik_czarny = "Black_king.obj"
     def __init__(self, kolor):
         if kolor:
             pozycja = 4
@@ -219,7 +221,8 @@ class krol(figura):
         return ruchy
     
 class hetman(figura):
-    plik_modelu = "Queen.obj"
+    plik_bialy = "White_queen.obj"
+    plik_czarny = "Black_queen.obj"
     def __init__(self, kolor, pozycja_poczatkowa = None):
         if kolor:
             pozycja = 3
@@ -239,7 +242,8 @@ class hetman(figura):
         return  super().get_xyz_na_planszy(0,0.5)
 
 class skoczek(figura):
-    plik_modelu = "Knight.obj"
+    plik_bialy = "White_knight.obj"
+    plik_czarny = "Black_knight.obj"
     def __init__(self, kolor, pozycja_poczatkowa):
         super().__init__(kolor, pozycja_poczatkowa)
         self.mozliwe_przesuniecia = []
@@ -268,7 +272,8 @@ class skoczek(figura):
         
 
 class wieza(figura):
-    plik_modelu = "Rook.obj"
+    plik_bialy = "White_rook.obj"
+    plik_czarny = "Black_rook.obj"
     def __init__(self, kolor, pozycja_poczatkowa):
         super().__init__(kolor, pozycja_poczatkowa)
         for i in [-1,0,1]:
@@ -279,7 +284,8 @@ class wieza(figura):
                     self.kierunki.append((i,j))
 
 class goniec(figura):
-    plik_modelu = "Bishop.obj"
+    plik_bialy = "White_bishop.obj"
+    plik_czarny = "Black_bishop.obj"
     def __init__(self, kolor, pozycja_poczatkowa):
         super().__init__(kolor, pozycja_poczatkowa)
         for i in [-1,0,1]:

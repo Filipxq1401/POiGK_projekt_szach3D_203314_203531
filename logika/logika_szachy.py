@@ -213,6 +213,7 @@ class Logika_szachy():
 class Gracz():
     def __init__(self, kolor):
         self.kolor = kolor
+        self.czas = 300
         self.piony = [pionek(self.kolor,i) for i in range(0,8)]
         #self.piony = []
         self.krol = krol(self.kolor)
