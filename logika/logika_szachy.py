@@ -58,7 +58,7 @@ class Logika_szachy():
                 if self.legalne_ruchy_wybranej_figury:
                     for ruch in self.legalne_ruchy_wybranej_figury:
                         if ruch[1] == wybrane:
-                            self.wykonaj_ruch_wlasny(ruch) # kliknęte było pole na które jest możliwość ruchu
+                            self.rozpocznij_ruch_wlasny(ruch) # kliknęte było pole na które jest możliwość ruchu
                             return pola_do_podświetlenia
                 self.wybierz_figure(None)
         if self.wybrana_figura:
@@ -74,6 +74,8 @@ class Logika_szachy():
             return
         self.wybrana_figura = figura
         pseudo_legalne = figura.ruchy_pseudo_legalne(self.plansza_wlasna)
+        #print(figura)
+        #print(pseudo_legalne)
         self.legalne_ruchy_wybranej_figury = []
         if pseudo_legalne:
             for ruch in pseudo_legalne:
@@ -85,7 +87,15 @@ class Logika_szachy():
         plansza_po_ruchu = copy.deepcopy(self.plansza_wlasna)
         plansza_po_ruchu[ruch[1]%10][ruch[1]//10] = plansza_po_ruchu[ruch[0]%10][ruch[0]//10]
         plansza_po_ruchu[ruch[0]%10][ruch[0]//10] = None
+        # obsługa bicia w przelocie
+        for figura in plansza_po_ruchu:
+            if figura is not None and isinstance(figura,pionek):
+                figura.czy_do_przelotu = False
         
+        if isinstance(plansza_po_ruchu[ruch[1]%10][ruch[1]//10],pionek) and ruch[2] == "przelot":
+            plansza_po_ruchu[ruch[1]%10][ruch[1]//10].czy_do_przelotu = False
+            plansza_po_ruchu[ruch[1]%10][ruch[0]//10] = None
+
         if self.tura:
             pozycja_krola = self.gracz_bialy.pozycja_krola()
             figury = self.gracz_czarny.get_figury_na_planszy()
@@ -93,39 +103,107 @@ class Logika_szachy():
             pozycja_krola = self.gracz_czarny.pozycja_krola()
             figury = self.gracz_bialy.get_figury_na_planszy()
         
+        pozycje_krola = []
         if pozycja_krola == ruch[0]: # jeżeli król się porusza
-            pozycja_krola = ruch[1]
-
+            pozycje_krola.append(ruch[1])
+        else:
+            pozycje_krola.append(pozycja_krola)
+        if ruch[2] == "roszada_krotka":
+            pozycje_krola.append(ruch[0])
+            pozycje_krola.append(ruch[0]+1)
+        if ruch[2] == "roszada_dluga":
+            pozycje_krola.append(ruch[0])
+            pozycje_krola.append(ruch[0]-1)
+        for krol in pozycje_krola:
+            plansza_po_ruchu[krol%10][krol//10] = plansza_po_ruchu[pozycje_krola[0]%10][pozycje_krola[0]//10]
+        #print(pozycje_krola)
         for figura in figury:
             if figura.get_pozycja() != ruch[1]: # jeżeli ta figura nie ma być zbita tym ruchem
                 ruchy_przeciwnika = figura.ruchy_pseudo_legalne(plansza_po_ruchu)
                 if ruchy_przeciwnika:
                     for ruch_przeciwnika in ruchy_przeciwnika:
-                        if ruch_przeciwnika[1] == pozycja_krola:
+                        if ruch_przeciwnika[1] in pozycje_krola and ruch_przeciwnika[2] == "bicie":
+                            #print(ruch_przeciwnika)
+                            del plansza_po_ruchu
                             return False
+        del plansza_po_ruchu
         return True
 
-    def wykonaj_ruch_wlasny(self,ruch):
+    def rozpocznij_ruch_wlasny(self,ruch):
         w_akt = ruch[0] // 10
         k_akt = ruch[0] % 10
         w_doc = ruch[1] // 10
         k_doc = ruch[1] % 10
         ruch_chess = chess.Move(chess.square(k_akt,w_akt),chess.square(k_doc,w_doc))
-        self.plansza_wlasna[k_akt][w_akt].porusz(ruch[1])
-        if ruch[2] == "bicie":
-            self.plansza_wlasna[k_doc][w_doc].zbij()
+        if self.tura:
+            self.gracz_bialy.rozpocznij_ruch(self.plansza_wlasna,ruch)
+            self.gracz_czarny.rozpocznij_zbicie(self.plansza_wlasna,ruch)
+        else:
+            self.gracz_czarny.rozpocznij_ruch(self.plansza_wlasna,ruch)
+            self.gracz_bialy.rozpocznij_zbicie(self.plansza_wlasna,ruch)
+        #self.plansza_wlasna[k_akt][w_akt].porusz(ruch[1])
+        #if ruch[2] == "bicie":
+        #    self.plansza_wlasna[k_doc][w_doc].zbij()
         self.wykonaj_ruch(self.plansza.san(ruch_chess))
         self.wybierz_figure(None)
-        self.stworz_nowa_plansze()
+        self.plansza_wlasna = self.stworz_nowa_plansze()
         self.tura = not self.tura
         self.numer_tury += 1
+        czy_jakis_ruch = self.czy_ma_ruchy()
+        
+
+    def czy_szach(self):
+        if self.tura:
+            pozycja_krola = self.gracz_bialy.pozycja_krola()
+            figury = self.gracz_czarny.get_figury_na_planszy()
+            gracz = self.gracz_bialy
+        else:
+            pozycja_krola = self.gracz_czarny.pozycja_krola()
+            figury = self.gracz_bialy.get_figury_na_planszy()
+            gracz = self.gracz_czarny
+        for figura in figury:
+            ruchy_przeciwnika = figura.ruchy_pseudo_legalne(self.plansza_wlasna)
+            if ruchy_przeciwnika:
+                for ruch_przeciwnika in ruchy_przeciwnika:
+                    if ruch_przeciwnika[1] == pozycja_krola and ruch_przeciwnika[2] == "bicie":
+                        gracz.ustaw_szach(True)
+                        return True
+        gracz.ustaw_szach(False)
+        return False
+    
+    def czy_ma_ruchy(self):
+        if self.tura:
+            figury = self.gracz_bialy.get_figury_na_planszy()
+        else:
+            figury = self.gracz_czarny.get_figury_na_planszy()
+        for figura in figury:
+            pseudo_legalne = figura.ruchy_pseudo_legalne(self.plansza_wlasna)
+            for ruch in pseudo_legalne:
+                if self.sprawdz_czy_legalny(ruch):
+                    return True
+        return False
+        
         
 
     def get_plansza(self):
         return self.plansza_wlasna
+    
     def get_figury_na_planszy(self):
         return self.gracz_bialy.get_figury_na_planszy() + self.gracz_czarny.get_figury_na_planszy()
+    
+    def czy_cos_sie_rusza(self):
+        if self.gracz_bialy.czy_cos_sie_rusza() or self.gracz_czarny.czy_cos_sie_rusza():
+            return True
+        return False
+    
+    def porusz(self, dt):
+        if self.gracz_bialy.czy_cos_sie_rusza():
+            self.gracz_bialy.porusz_poruszajace(dt)
+        if self.gracz_czarny.czy_cos_sie_rusza():
+            self.gracz_czarny.porusz_poruszajace(dt)
 
+    def get_poruszajace_figury(self):
+        return self.gracz_bialy.get_poruszajace() + self.gracz_czarny.get_poruszajace()
         
 
         
@@ -136,19 +214,88 @@ class Gracz():
     def __init__(self, kolor):
         self.kolor = kolor
         self.piony = [pionek(self.kolor,i) for i in range(0,8)]
+        #self.piony = []
         self.krol = krol(self.kolor)
         self.hetman = hetman(self.kolor)
         wiersz = 0 if kolor else 70
         self.wieze = [wieza(self.kolor,wiersz), wieza(self.kolor,wiersz + 7)]
         self.skoczki = [skoczek(self.kolor,wiersz + 1), skoczek(self.kolor,wiersz + 6)]
         self.gonce = [goniec(self.kolor,wiersz + 2), goniec(self.kolor,wiersz + 5)]
-        self.zbite_figury = None
+        self.zbite_figury = []
         self.figury_na_planszy = self.piony + [self.krol, self.hetman] + self.wieze + self.skoczki + self.gonce
         self.czy_w_szachu = False
+        self.ile_zbitych = 0
+        #self.czy_w_ruchu = False
+        self.figury_w_ruchu = []
+        self.figura_zbijana = None
 
+    def get_poruszajace(self):
+        return self.figury_w_ruchu + [self.figura_zbijana]
+    
     def get_figury_na_planszy(self):
-        return self.figury_na_planszy
+        figury = []
+        for figura in self.figury_na_planszy:
+            if not figura.czy_rusza:
+                figury.append(figura)
+        return figury
+    
     def czy_szach(self):
         return self.czy_w_szachu
+    def ustaw_szach(self,szach):
+        self.czy_w_szachu = szach
     def pozycja_krola(self):
         return self.krol.get_pozycja()
+    
+    def rozpocznij_ruch(self,plansza,ruch):
+        self.figury_w_ruchu.append(plansza[ruch[0]%10][ruch[0]//10])
+        plansza[ruch[0]%10][ruch[0]//10].rozpocznij_ruch(ruch[1])
+        
+        if ruch[2] == "roszada_krotka":
+            self.figury_w_ruchu.append(self.wieze[1])
+            self.wieze[1].rozpocznij_ruch(ruch[1]-1)
+        elif ruch[2] == "roszada_dluga":
+            self.figury_w_ruchu.append(self.wieze[0])
+            self.wieze[0].rozpocznij_ruch(ruch[1]+1)
+        
+        # zabranianie roszad
+        if self.figury_w_ruchu[0] == self.krol:
+            self.krol.zeruj_obie_roszady()
+        elif self.figury_w_ruchu[0] == self.wieze[0]:
+            self.krol.czy_roszada_dluga = False
+        elif self.figury_w_ruchu[0] == self.wieze[1]:
+            self.krol.czy_roszada_krotka = False
+        
+        
+    def porusz_poruszajace(self,dt):
+        if len(self.figury_w_ruchu) != 0:
+            for i,figura in enumerate(self.figury_w_ruchu):
+                czy_skonczyla = figura.przesun(dt)
+                if czy_skonczyla:
+                    self.figury_w_ruchu.pop(i)
+        if self.figura_zbijana is not None:
+            czy_skonczyla = self.figura_zbijana.przesun(dt)
+            if czy_skonczyla:
+                self.figura_zbijana = None
+
+        
+    
+    def czy_cos_sie_rusza(self):
+        if len(self.figury_w_ruchu) == 0 and self.figura_zbijana == None:
+            return False
+        else:
+            return True
+
+    def rozpocznij_zbicie(self,plansza,ruch):
+        if ruch[2] == "bicie":
+            self.figura_zbijana = plansza[ruch[1]%10][ruch[1]//10]
+        elif ruch[2] == "przelot":
+            self.figura_zbijana = plansza[ruch[1]%10][ruch[0]//10]
+        else:
+            return
+        self.zbite_figury.append(self.figura_zbijana)
+        self.figura_zbijana.pozycja_zbitego = self.ile_zbitych
+        self.ile_zbitych += 1
+        for i,figura in enumerate(self.figury_na_planszy):
+            if figura == self.figura_zbijana:
+                self.figury_na_planszy.pop(i)
+        self.figura_zbijana.rozpocznij_zbijanie()

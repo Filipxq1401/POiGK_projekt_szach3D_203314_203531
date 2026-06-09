@@ -21,6 +21,7 @@ class Game_manager():
         self.silnik_ui = Silnik_UI(self.szerokosc,self.wysokosc)
         self.logika = Logika_szachy()
         self.stan = StanProgramu.Normalne
+        self.kat = 0
 
 
     def start_gry(self):
@@ -41,37 +42,44 @@ class Game_manager():
                     if event.button == 1:
                        kliknete_pole = self.silnik_3d.znajdz_pole(event.pos)
             
+            if self.logika.czy_cos_sie_rusza():
+                self.stan = StanProgramu.Poruszanie_figury
+            elif self.stan == StanProgramu.Poruszanie_figury:
+                self.logika.stworz_nowa_plansze()
+                self.stan = StanProgramu.Obracanie_kamery
+            aktualne_pole = self.silnik_3d.znajdz_pole(pygame.mouse.get_pos()) # pole na którym jest myszka
+            #pola_do_podswietlenia = self.logika.podswietlenie_ograniczone(aktualne_pole)
+            pola_do_podswietlenia = []
+            poruszajace = []
             match self.stan:
                 case StanProgramu.Normalne:
-                    aktualne_pole = self.silnik_3d.znajdz_pole(pygame.mouse.get_pos()) # pole na którym jest myszka
                     pola_do_podswietlenia = self.logika.przetworz_myszke(kliknete_pole,aktualne_pole)
-                    plansza = self.logika.get_plansza()
-                    plansza_str = ""
-                    for i in range(8):
-                        for j in range(8):
-                            kolumna = j
-                            wiersz = 7 - i
-                            pozycja = 10*wiersz+kolumna
-                            if pola_do_podswietlenia:
-                                tak = True
-                                for pole in pola_do_podswietlenia:
-                                    if pole[0] == pozycja:
-                                        plansza_str += "-" + str(plansza[kolumna][wiersz])[0] + "-"
-                                        tak = False
-                                        break
-                                if tak:
-                                    plansza_str += " " + str(plansza[kolumna][wiersz])[0] + " "
-                            else:
-                                plansza_str += " " + str(plansza[kolumna][wiersz])[0] + " "
-                        plansza_str += "\n" 
-                    self.silnik_ui.generuj_klatke(self,self.logika.plansza,plansza_str)
+                    #plansza = self.logika.get_plansza()
+                case StanProgramu.Poruszanie_figury:
+                    self.logika.porusz(dt)
+                    poruszajace = self.logika.get_poruszajace_figury()
+                case StanProgramu.Obracanie_kamery:
+                    cel_kat = 0.0 if self.logika.tura else 180.0
+                    roznica = cel_kat - self.kat
+                    predkosc = 180.0 
+                    if roznica != 0:
+                        krok = predkosc * dt
+                        if abs(roznica) <= krok:
+                            self.kat = cel_kat
+                        else:
+                            self.kat += krok if roznica > 0 else -krok
+                    else:
+                        self.stan = StanProgramu.Normalne
 
-                    self.silnik_3d.ustaw_kamere(self.logika.plansza.turn,dt)
-                    self.silnik_3d.wyswietl_plansze()
-                    self.silnik_3d.podswietl_pola(pola_do_podswietlenia)
-                    self.silnik_3d.wyswietl_figur_plansza(self.logika.get_figury_na_planszy())
+            self.silnik_ui.generuj_klatke(self,self.logika.plansza)
+            self.silnik_3d.ustaw_kamere(self.kat,dt)
+            self.silnik_3d.wyswietl_plansze()
+            self.silnik_3d.podswietl_pola(pola_do_podswietlenia)
+            self.silnik_3d.wyswietl_figur_plansza(self.logika.get_figury_na_planszy())
+            if poruszajace:
+                self.silnik_3d.wyswietl_poruszajace(poruszajace)
+            self.silnik_ui.renderuj_klatke()
 
-                    self.silnik_ui.renderuj_klatke()
             
             
             pygame.display.flip()

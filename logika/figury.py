@@ -1,4 +1,6 @@
 from czesc_3d.model_3d import model_3d
+import numpy as np
+PREDKOSC = 4
 class figura:
     model_bialy = None
     model_czarny = None
@@ -10,7 +12,10 @@ class figura:
         klasa = self.__class__
         self.kolor = kolor
         self.pozycja = pozycja_poczatkowa
-        self.poprzednia_pozycja = pozycja_poczatkowa
+        self.xyz_poczatkowe = []
+        self.xyz_aktualne = []
+        self.xyz_docelowe = []
+        self.kierunek_ruchu = []
         self.czy_rusza = False
         self.pozycja_zbitego = None
         self.kierunki = []
@@ -42,10 +47,24 @@ class figura:
     
     def porusz(self,nowa_pozycja):
         self.pozycja = nowa_pozycja
+
     def zbij(self):
         self.pozycja = 88
+
     def get_pozycja(self):
         return self.pozycja
+    
+    def get_xyz_na_planszy(self,offset_y = 0,offset_z = 0):
+        wiersz = self.pozycja // 10
+        kolumna = self.pozycja % 10
+        if offset_y == 0:
+            dy = 0.8 if self.kolor else 0.2
+        else:
+            dy = offset_y
+        return [-7 + 2 * kolumna ,  -7 + 2 * wiersz + dy, 2 + offset_z]
+
+
+
     def __str__(self):
         klasa = self.__class__
         nazwa = klasa.plik_modelu
@@ -76,6 +95,37 @@ class figura:
                 else:
                     wolne = False #pole zajęte przez inna figure tego samego koloru, nie możliwe dalsze przesunięcie w tą strone
         return ruchy
+    
+    def rozpocznij_ruch(self,docelowe):
+        self.czy_rusza = True
+        klasa = self.__class__
+        self.xyz_aktualne = np.array(klasa.get_xyz_na_planszy(self))
+        self.pozycja = docelowe
+        self.xyz_docelowe = np.array(klasa.get_xyz_na_planszy(self))
+
+    def rozpocznij_zbijanie(self):
+        self.czy_rusza = True
+        klasa = self.__class__
+        self.xyz_aktualne = np.array(klasa.get_xyz_na_planszy(self))
+        self.xyz_docelowe = np.array([20, 20, 20])
+
+    def przesun(self,dt):
+        try:
+            roznica = self.xyz_docelowe - self.xyz_aktualne
+            roznica_dlugosc = np.linalg.norm(roznica)
+            kierunek = roznica / roznica_dlugosc # wektor jednostkowy
+            przesuniecie = kierunek * PREDKOSC * dt
+            if roznica_dlugosc < np.linalg.norm(przesuniecie):
+                self.czy_rusza = False
+                return True
+            self.xyz_aktualne += kierunek * PREDKOSC * dt
+            return False
+        except:
+            self.czy_rusza = False
+            return True
+
+
+
 
 
     
@@ -89,9 +139,10 @@ class pionek(figura):
         super().__init__(kolor,pozycja)
         
         self.czy_do_przelotu = False #w jakiej turze ruszył się o 2, do bicia w przelocie
+
+    def get_xyz_na_planszy(self):
+        return  super().get_xyz_na_planszy(0.5,0)
     
-    def get_czy_przelot(self):
-        return self.czy_do_przelotu
     
     def ruchy_pseudo_legalne(self, plansza):
         if self.pozycja == 88:
@@ -115,6 +166,9 @@ class pionek(figura):
             if plansza[kolumna_sprawdzana][wiersz + strona_ruchu] is not None and plansza[kolumna_sprawdzana][wiersz + strona_ruchu].get_kolor() != self.kolor:
                 ruchy.append([wiersz*10+kolumna, (wiersz + strona_ruchu)*10+kolumna_sprawdzana, "bicie"])
             # jeszcze bicie w przelocie wymyśleć
+            if plansza[kolumna_sprawdzana][wiersz] is not None and isinstance(plansza[kolumna_sprawdzana][wiersz],pionek) and plansza[kolumna_sprawdzana][wiersz].czy_do_przelotu and plansza[kolumna_sprawdzana][wiersz].get_kolor() != self.kolor:
+                ruchy.append([wiersz*10+kolumna, (wiersz + strona_ruchu)*10+kolumna_sprawdzana, "przelot"])
+
         return ruchy
 
 class krol(figura):
@@ -126,10 +180,15 @@ class krol(figura):
             pozycja = 74
         super().__init__(kolor, pozycja)
 
-        self.czy_roszada = True # czy może zrobić roszadę
+        self.czy_roszada_dluga = True # czy może zrobić roszadę
+        self.czy_roszada_krotka = True
+
+    def get_xyz_na_planszy(self):
+        return  super().get_xyz_na_planszy(0,0.5)
     
-    def get_czy_roszada(self):
-        return self.czy_roszada
+    def zeruj_obie_roszady(self):
+        self.czy_roszada_dluga = False # czy może zrobić roszadę
+        self.czy_roszada_krotka = False
     
     def ruchy_pseudo_legalne(self, plansza):
         if self.pozycja == 88:
@@ -151,6 +210,12 @@ class krol(figura):
                 elif plansza[kolumna_sprawdzana][wiersz_sprawdzany].get_kolor() != self.kolor:
                     ruchy.append([wiersz*10+kolumna, wiersz_sprawdzany*10+kolumna_sprawdzana, "bicie"])
         # jeszcze sprawdzenie roszady
+        if self.czy_roszada_krotka:
+            if plansza[kolumna+1][wiersz] is None and plansza[kolumna+2][wiersz] is None and isinstance(plansza[kolumna+3][wiersz],wieza) and plansza[kolumna+3][wiersz].get_kolor() == self.kolor:
+                ruchy.append([wiersz*10+kolumna, wiersz*10+kolumna+2, "roszada_krotka"])
+        if self.czy_roszada_dluga:
+            if plansza[kolumna-1][wiersz] is None and plansza[kolumna-2][wiersz] is None and plansza[kolumna-3][wiersz] is None and isinstance(plansza[kolumna-4][wiersz],wieza) and plansza[kolumna-4][wiersz].get_kolor() == self.kolor:
+                ruchy.append([wiersz*10+kolumna, wiersz*10+kolumna-2, "roszada_dluga"])
         return ruchy
     
 class hetman(figura):
@@ -169,6 +234,9 @@ class hetman(figura):
                 if i == 0 and j == 0:
                     continue
                 self.kierunki.append((i,j))
+
+    def get_xyz_na_planszy(self):
+        return  super().get_xyz_na_planszy(0,0.5)
 
 class skoczek(figura):
     plik_modelu = "Knight.obj"
@@ -220,5 +288,8 @@ class goniec(figura):
                     continue
                 if not(i == 0 or j == 0):
                     self.kierunki.append((i,j))
+
+    def get_xyz_na_planszy(self):
+        return  super().get_xyz_na_planszy(0,0.5)
 
         

@@ -19,7 +19,6 @@ class Silnik_3D():
         self.model_mat = None
         self.szachownica = model_3d("10586_Chess Board_v2_Iterations-2.obj", centruj=True)
 
-        self.aktualny_kat = 0
         
         pliki_figur = {
             chess.PAWN:   "Pawn.obj",
@@ -37,22 +36,11 @@ class Silnik_3D():
         #    self.modele_figur[(typ_figury, chess.BLACK)] = model_3d(nazwa_pliku, tekstura="Czarne_piony.jpg")
         
     
-    def ustaw_kamere(self, tura, dt):
+    def ustaw_kamere(self, kat, dt):
         glViewport(0, 0, int(self.szerokosc), int(self.wysokosc))
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
-        
-        # --- Obrót kamery ---
-        cel_kat = 0.0 if tura else 180.0
-        roznica = cel_kat - self.aktualny_kat
-        predkosc = 180.0 
-        
-        if roznica != 0:
-            krok = predkosc * dt
-            if abs(roznica) <= krok:
-                self.aktualny_kat = cel_kat
-            else:
-                self.aktualny_kat += krok if roznica > 0 else -krok
+        kat
 
         kamera_x = 0.0
         kamera_y = -30 * np.sin(np.deg2rad(50))
@@ -60,7 +48,7 @@ class Silnik_3D():
         
         gluLookAt(kamera_x, kamera_y, kamera_z,  0.0, 0.0, 1.0,  0.0, 0.0, 1.0)
         
-        glRotatef(self.aktualny_kat, 0, 0, 1)
+        glRotatef(kat, 0, 0, 1)
         self.model_mat = glGetDoublev(GL_MODELVIEW_MATRIX)
 
     def wyswietl_plansze(self):
@@ -82,23 +70,16 @@ class Silnik_3D():
             else:
                 figura.wyswietl()
             glPopMatrix()
-        # ---------------------------- Wyświetlanie figur ----------------------------------------
-        #for i in range(0, 8):
-        #    for j in range(0, 8):
-        #        square = chess.square(j, i)
-        #        figura = plansza.piece_at(square)
-        #        
-        #        if figura is not None:
-        #            glPushMatrix()
-        #            glTranslatef(-7.05 + 2 * j, -7.0 + 2 * i, 0.9)
-        #            
-        #            model = self.modele_figur.get((figura.piece_type, figura.color))
-        #            
-        #            if model:
-        #                glScalef(0.3, 0.3, 0.3) 
-        #                model.rysuj()
-        #            glPopMatrix()
-        
+    
+    def wyswietl_poruszajace(self,figury):
+        for figura in figury:
+            if figura:
+                x,y,z = figura.xyz_aktualne
+                glPushMatrix()
+                glTranslatef(x,y,1)
+                glScalef(0.3, 0.3, 0.3)
+                figura.wyswietl()
+                glPopMatrix()
 
     def znajdz_pole(self, pozycja):
         x ,y = pozycja
