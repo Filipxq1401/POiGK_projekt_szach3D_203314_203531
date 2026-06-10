@@ -30,6 +30,53 @@ class Silnik_UI():
     def zakoncz_okno(self):
         imgui.end()
 
+    def wyswietl_zegary(self, czas_bialych, czas_czarnych, tura_bialych):
+        imgui.dummy(imgui.ImVec2(0, 15))
+        imgui.begin_child("zegary_panel", imgui.ImVec2(self.szerokosc - 20, 70), False)
+        imgui.columns(2, None, False)
+
+        imgui.push_style_color(imgui.Col_.child_bg, (0.92, 0.92, 0.92, 1.0))
+        imgui.begin_child("czas_bialych", imgui.ImVec2(0, 50), True)
+
+        text = f"{czas_bialych}"
+        imgui.push_font(None, 28)
+        tw = imgui.calc_text_size(text).x
+        ww = imgui.get_window_width()
+        imgui.set_cursor_pos_x((ww - tw) / 2)
+
+        if tura_bialych:
+            imgui.text_colored((0.0, 1.0, 0.0, 1.0), text)
+        else:
+            imgui.text_colored((0.4, 0.4, 0.4, 1.0), text)
+
+        imgui.pop_font()
+        imgui.end_child()
+        imgui.pop_style_color()
+
+        imgui.next_column()
+
+        imgui.push_style_color(imgui.Col_.child_bg, (0.1, 0.1, 0.1, 1.0))
+        imgui.begin_child("czas_czarnych", imgui.ImVec2(0, 50), True)
+
+        text = f"{czas_czarnych}"
+        imgui.push_font(None, 28)
+        tw = imgui.calc_text_size(text).x
+        ww = imgui.get_window_width()
+        imgui.set_cursor_pos_x((ww - tw) / 2)
+
+        if not tura_bialych:
+            imgui.text_colored((0.0, 1.0, 0.0, 1.0), text)
+        else:
+            imgui.text_colored((0.7, 0.7, 0.7, 1.0), text)
+
+        imgui.pop_font()
+        imgui.end_child()
+        imgui.pop_style_color()
+
+        imgui.columns(1)
+        imgui.end_child()
+
+
     def wyswietl_plansze(self,plansza):
         imgui.image(imgui.ImTextureRef(plansza),imgui.ImVec2(self.szerokosc - 10,self.szerokosc - 10))
 
@@ -51,56 +98,6 @@ class Silnik_UI():
             logika.wykonaj_promocje(3)
             return True
         return False
-
-
-    #def generuj_klatke(self,game_manager,plansza_zdjecie):
-    #    self.impl.process_inputs()
-    #    imgui.new_frame()
-    #    
-    #    flagi_okna = (
-    #        imgui.WindowFlags_.no_move | 
-    #        imgui.WindowFlags_.no_collapse | 
-    #        imgui.WindowFlags_.no_resize |
-    #        imgui.WindowFlags_.no_title_bar
-    #    )
-    #    
-    #    imgui.set_next_window_pos((3 * self.szerokosc, 0), imgui.Cond_.always)
-    #    imgui.set_next_window_size((self.szerokosc, self.wysokosc), imgui.Cond_.always)
-    #    
-    #    imgui.begin("Prawy panel", flags=flagi_okna)
-    #    
-    #    fps = imgui.get_io().framerate
-    #    
-    #    imgui.separator() 
-    #    zmieniono, self.ruch = imgui.input_text("##pole_ruchu", self.ruch)
-    #    imgui.same_line()
-#
-    #    if imgui.button("Wykonaj"):
-    #        if not game_manager.wykonaj_ruch(self.ruch.strip()):
-    #            self.blad = True
-    #        else:
-    #            self.blad = False
-    #        self.ruch = ""
-    #    if self.blad:
-    #        imgui.text_colored([255,0,0,1],"Nieprawidlowy ruch")
-    #    
-    #    #historia_pusta = len(game_manager.historia_ruchow) == 0
-    #    #imgui.begin_disabled(historia_pusta)
-    #    imgui.same_line()
-    #    if imgui.button("Cofnij"):
-    #        game_manager.cofnij_ruch()
-    #    
-    #    imgui.separator()
-    #    #imgui.text("  A  B  C  D  E  F  G  H")
-    #    #for i in range(0,8):
-    #    #    imgui.text(str(8-i))
-    #    #    for j in range(0,8):
-    #    #        imgui.same_line()
-    #    #        imgui.text(str(plansza)[16*i + 2*j] + " ")
-    #    #imgui.end_disabled()
-    #    #imgui.text(plansza_str)
-    #    imgui.image(imgui.ImTextureRef(plansza_zdjecie),imgui.ImVec2(self.szerokosc - 10,self.szerokosc - 10))
-        
 
     def renderuj_klatke(self):
         imgui.render()
