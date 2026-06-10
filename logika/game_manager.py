@@ -21,7 +21,7 @@ class Game_manager():
         self.silnik_3d = Silnik_3D(self.szerokosc,self.wysokosc)
         self.silnik_ui = Silnik_UI(self.szerokosc,self.wysokosc)
         self.logika = Logika_szachy()
-        self.stan = StanProgramu.Normalne
+        self.stan = StanProgramu.Menu_poczatkowe
         self.kat = 0
         self.czy_koniec = False
         self.svg_planszy = self.logika.get_svg_planszy(None)
@@ -31,7 +31,7 @@ class Game_manager():
 
     def reset_gry(self):
         self.logika = Logika_szachy()
-        self.stan = StanProgramu.Normalne
+        self.stan = StanProgramu.Menu_poczatkowe
         self.kat = 0
         self.czy_koniec = False
         self.svg_planszy = self.logika.get_svg_planszy(None)
@@ -125,7 +125,7 @@ class Game_manager():
                     self.czy_promocja = self.silnik_ui.wyswietl_menu_promocji(self.logika)
                 self.silnik_ui.zakoncz_okno()
             else:
-                #self.silnik_ui.wyswietl_menu_poczatkowe()
+                self.silnik_ui.wyswietl_menu_poczatkowe(self)
                 self.silnik_ui.zakoncz_okno()
 
             self.silnik_3d.ustaw_kamere(self.kat,dt)
@@ -156,6 +156,9 @@ class Game_manager():
     
     def cofnij_ruch(self):
         self.logika.cofnij_ruch()
+
+    def zacznij_normalne(self):
+        self.stan = StanProgramu.Normalne
 
 #init 
 #jak się klikne na figure to sprawdza legalność ruchów
