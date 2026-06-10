@@ -183,8 +183,15 @@ class Game_manager():
         self.historia.append(copy.deepcopy(self.logika))
 
     def cofnij(self):
+        print(self.historia)
         if self.historia:
-            self.logika = self.historia.pop()
+            self.logika =  self.historia[-1]
+            self.historia.pop()
+        self.kat = 0.0 if self.logika.tura else 180.0
+        self.stan = StanProgramu.Normalne
+        self.svg_planszy = self.logika.get_svg_planszy(None)
+        self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
+
             
 
 #init 
