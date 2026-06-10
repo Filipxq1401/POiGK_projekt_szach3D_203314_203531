@@ -95,23 +95,32 @@ class Silnik_UI():
     def wyswietl_plansze(self,plansza):
         imgui.image(imgui.ImTextureRef(plansza),imgui.ImVec2(self.szerokosc - 10,self.szerokosc - 10))
 
-    def wyswietl_menu_promocji(self,logika):
+    def wyswietl_menu_promocji(self, logika):
         imgui.separator()
-        if imgui.button("Hetman"):
+
+        total = self.szerokosc - 20
+        spacing = imgui.get_style().item_spacing.x
+        szer = (total - spacing * 3) / 4
+
+        if imgui.button("Hetman", imgui.ImVec2(szer, 40)):
             logika.wykonaj_promocje(0)
             return True
         imgui.same_line()
-        if imgui.button("Wieza"):
+
+        if imgui.button("Wieża", imgui.ImVec2(szer, 40)):
             logika.wykonaj_promocje(1)
             return True
         imgui.same_line()
-        if imgui.button("Goniec"):
+
+        if imgui.button("Goniec", imgui.ImVec2(szer, 40)):
             logika.wykonaj_promocje(2)
             return True
         imgui.same_line()
-        if imgui.button("Skoczek"):
+
+        if imgui.button("Skoczek", imgui.ImVec2(szer, 40)):
             logika.wykonaj_promocje(3)
             return True
+
         return False
     
 

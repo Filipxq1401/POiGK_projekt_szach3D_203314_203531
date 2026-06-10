@@ -139,7 +139,7 @@ class Game_manager():
                 self.silnik_ui.wyswietl_menu_poczatkowe(self)
                 self.silnik_ui.zakoncz_okno()
 
-            self.silnik_3d.ustaw_kamere(self.kat,dt)
+            self.silnik_3d.ustaw_kamere_swiatlo(self.kat,dt)
             self.silnik_3d.wyswietl_plansze()
             if pola_do_podswietlenia:
                 self.silnik_3d.podswietl_pola(pola_do_podswietlenia)
