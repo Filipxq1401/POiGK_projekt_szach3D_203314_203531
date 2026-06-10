@@ -49,11 +49,11 @@ class Logika_szachy():
         
         return self.plansza_wlasna
     
-    def podswietlenie_baza(self,hover):
+    def podswietlenie_baza(self,hover,koniec = False):
         pola_do_podświetlenia = []
         if hover is not None:
             pola_do_podświetlenia.append([hover, 0,1,0]) # czerwone
-        if self.wybrana_figura:
+        if self.wybrana_figura and not koniec:
             pola_do_podświetlenia.append([self.wybrana_figura.get_pozycja(),1,1,0])
         if self.gracz_bialy.czy_szach():
             pola_do_podświetlenia.append([self.gracz_bialy.pozycja_krola(),1,0,0])
@@ -170,17 +170,15 @@ class Logika_szachy():
 
     def nowa_tura(self):
         self.plansza_wlasna = self.stworz_nowa_plansze()
-        self.tura = not self.tura
-        if self.tura:
+        if not self.tura:
             self.gracz_bialy.resetuj_przelot()
         else:
             self.gracz_czarny.resetuj_przelot()
-        self.numer_tury += 1
         czy_jakis_ruch = self.czy_ma_ruchy()
         self.gracz_bialy.ustaw_szach(self.czy_szach(True))
         self.gracz_czarny.ustaw_szach(self.czy_szach(False))
         if not czy_jakis_ruch:
-            if self.tura:
+            if not self.tura:
                 if self.gracz_bialy.czy_szach():
                     self.wynik = 2
                     return True
@@ -197,17 +195,19 @@ class Logika_szachy():
                     self.powod_remisu = 2
                     return True
         else:
-            wynik = self.plansza.outcome()
+            wynik = self.plansza.outcome(claim_draw=True)
             if wynik:
                 if wynik.result() == "1/2-1/2":
                     self.wynik = 0
-                    self.powod_remisu = wynik.termination()
+                    self.powod_remisu = wynik.termination
                 elif wynik.result() == "1-0":
                     self.wynik = 1
                 else:
                     self.wynik = 2
                 return True
             else:
+                self.tura = not self.tura
+                self.numer_tury += 1
                 return False
 
     def get_historia(self):

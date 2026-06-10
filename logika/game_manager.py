@@ -79,7 +79,10 @@ class Game_manager():
                     self.stan = StanProgramu.Menu_promocji
                     self.czy_promocja = False
             
-            if self.czy_koniec and self.stan == StanProgramu.Normalne:
+            if self.czy_koniec:
+                pola_do_podswietlenia = self.logika.podswietlenie_baza(None,True)
+                self.svg_planszy = self.logika.get_svg_planszy(pola_do_podswietlenia)
+                self.nowa_plansza = True
                 self.stan = StanProgramu.Koniec
             
             if self.stan == StanProgramu.Menu_promocji and self.czy_promocja:
@@ -122,9 +125,16 @@ class Game_manager():
                 czas_bialych, czas_czarnych = self.logika.get_czas_str()
                 self.silnik_ui.wyswietl_zegary(czas_bialych, czas_czarnych, self.logika.tura)
                 #self.silnik_ui.wyswietl_historie(self.logika.get_historia())
-                #self.silnik_ui.wyswietl_panel_kontrolny(self)
                 if self.stan == StanProgramu.Menu_promocji:
                     self.czy_promocja = self.silnik_ui.wyswietl_menu_promocji(self.logika)
+                elif self.stan == StanProgramu.Koniec:
+                    pola_do_podswietlenia = self.logika.podswietlenie_baza(None,True)
+                    if self.silnik_ui.wyswietl_menu_konca(self.logika.plansza.outcome(claim_draw=True), True if self.logika.wynik == 1 else False):
+                        self.reset_gry()
+                else:
+                    pass
+                    #self.silnik_ui.wyswietl_panel_kontrolny(self)
+
                 self.silnik_ui.zakoncz_okno()
             else:
                 self.silnik_ui.wyswietl_menu_poczatkowe(self)
@@ -142,6 +152,7 @@ class Game_manager():
             
             self.silnik_ui.renderuj_klatke()
             
+
             if pola_do_podswietlenia and aktualne_pole:
                 pola_do_podswietlenia.pop(0)
             self.poprzednie_podswietlane_pola = pola_do_podswietlenia
@@ -162,6 +173,7 @@ class Game_manager():
     def zacznij_normalne(self,czas,bonus):
         self.logika.ustaw_czas(czas,bonus)
         self.stan = StanProgramu.Normalne
+        self.nowa_plansza = True
 
     def zapisz_logike(self):
         self.historia.append(copy.deepcopy(self.logika))
