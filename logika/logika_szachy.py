@@ -335,7 +335,7 @@ class Logika_szachy():
     def dodaj_ruch_do_historii(self,ruch):
         self.ostatnie_ruchy.append([ruch,self.tura])
         if len(self.ostatnie_ruchy) > 5:
-            self.ostatnie_ruchy.pop()
+            self.ostatnie_ruchy.popleft()
 
 
         

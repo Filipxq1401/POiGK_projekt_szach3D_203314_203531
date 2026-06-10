@@ -201,6 +201,9 @@ class Silnik_UI():
             komunikat_szerokosc = imgui.calc_text_size(komunikat).x
             imgui.set_cursor_pos_x((self.szerokosc - komunikat_szerokosc) / 2)
             imgui.text_colored(imgui.ImVec4(1, 0.5, 0, 1), komunikat)
+
+    def wyswietl_menu_konca():
+        pass
         
 
     def renderuj_klatke(self):

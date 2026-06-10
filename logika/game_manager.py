@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
-
+import copy
+from collections import deque
 
 from czesc_3d.silnik_3d import Silnik_3D
 from czesc_2d.silnik_ui import Silnik_UI
@@ -28,6 +29,7 @@ class Game_manager():
         self.nowa_plansza = True
         self.poprzednie_podswietlane_pola = []
         self.czy_promocja = False
+        self.historia = deque([])
 
     def reset_gry(self):
         self.logika = Logika_szachy()
@@ -68,6 +70,7 @@ class Game_manager():
             elif self.stan == StanProgramu.Poruszanie_figury:
                 if not self.logika.czy_promocja():
                     self.stan = StanProgramu.Obracanie_kamery
+                    self.zapisz_logike()
                     self.czy_koniec = self.logika.nowa_tura()
                     self.svg_planszy = self.logika.get_svg_planszy(None)
                     print(self.logika.get_historia())
@@ -80,8 +83,6 @@ class Game_manager():
                 self.stan = StanProgramu.Koniec
             
             if self.stan == StanProgramu.Menu_promocji and self.czy_promocja:
-                #self.svg_planszy = self.logika.get_svg_planszy(None)
-                #self.nowa_plansza = True
                 self.stan = StanProgramu.Poruszanie_figury
 
             aktualne_pole = self.silnik_3d.znajdz_pole(pygame.mouse.get_pos()) # pole na którym jest myszka
@@ -156,11 +157,19 @@ class Game_manager():
         return self.logika.wykonaj_ruch(ruch)
     
     def cofnij_ruch(self):
-        self.logika.cofnij_ruch()
+        pass
 
     def zacznij_normalne(self,czas,bonus):
         self.logika.ustaw_czas(czas,bonus)
         self.stan = StanProgramu.Normalne
+
+    def zapisz_logike(self):
+        self.historia.append(copy.deepcopy(self.logika))
+
+    def cofnij(self):
+        if self.historia:
+            self.logika = self.historia.pop()
+            
 
 #init 
 #jak się klikne na figure to sprawdza legalność ruchów
