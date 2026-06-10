@@ -33,6 +33,7 @@ class Game_manager():
 
     def reset_gry(self):
         self.logika = Logika_szachy()
+        self.silnik_ui.resetuj()
         self.stan = StanProgramu.Menu_poczatkowe
         self.kat = 0
         self.czy_koniec = False
@@ -73,6 +74,7 @@ class Game_manager():
                     self.zapisz_logike()
                     self.czy_koniec = self.logika.nowa_tura()
                     self.svg_planszy = self.logika.get_svg_planszy(None)
+                    self.silnik_ui.resetu_ruch()
                     self.nowa_plansza = True
                 else:
                     self.stan = StanProgramu.Menu_promocji
@@ -131,8 +133,7 @@ class Game_manager():
                     if self.silnik_ui.wyswietl_menu_konca(self.logika.plansza.outcome(claim_draw=True), True if self.logika.wynik == 1 else False):
                         self.reset_gry()
                 else:
-                    pass
-                    #self.silnik_ui.wyswietl_panel_kontrolny(self)
+                    self.silnik_ui.wyswietl_kontrolki(self)
 
                 self.silnik_ui.zakoncz_okno()
             else:
@@ -162,9 +163,11 @@ class Game_manager():
         self.silnik_ui.impl.shutdown()
         pygame.quit()
 
-    def wykonaj_ruch(self,ruch):
-        # tu jeszcze będzie zarządzanie animacjami ruchu i pozycjami poszczególnych figur
-        return self.logika.wykonaj_ruch(ruch)
+    def wykonaj_ruch_manualnie(self,pozycja_poczatkowa,pozycja_koncowa):
+        if len(pozycja_poczatkowa) == 2 and len(pozycja_koncowa) == 2:
+            return self.logika.wykonaj_manulany_ruch(pozycja_poczatkowa,pozycja_koncowa)
+        else:
+            return False
     
     def cofnij_ruch(self):
         pass

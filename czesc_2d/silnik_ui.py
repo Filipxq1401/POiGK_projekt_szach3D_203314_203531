@@ -9,14 +9,15 @@ class Silnik_UI():
         self.io = imgui.get_io()
         self.io.display_size = (szer, wys)
         self.impl = PygameRenderer()
-        self.ruch=""
-        self.blad = False
 
         self.czas_poczatkowy = 300
         self.czas_za_ruch = 0
-        self.plik_partii = ""
+        self.plik_partii = "przyklad.pgn"
         self.opoznienie_odtwarzania = 2
         self.font = self.io.fonts.add_font_from_file_ttf("C:/Windows/Fonts/arial.ttf", 10)
+        self.pole_1 = ""
+        self.pole_2 = ""
+        self.udany_ruch = True
     
     def inicjalizuj_klatke(self):
         self.impl.process_inputs()
@@ -277,7 +278,80 @@ class Silnik_UI():
             przycisk = True
         imgui.spacing()
         return przycisk
+    
+    def wyswietl_kontrolki(self,gra):
+        imgui.separator()
+        tekst = "Manualne wpisywanie ruchu"
+        imgui.push_font(self.font,20)
+        tekst_szerokosc = imgui.calc_text_size(tekst).x
+        imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+        imgui.text(tekst)
+        imgui.pop_font()
+        imgui.separator()
+        imgui.text(" ")
+        imgui.same_line()
+        imgui.text("Pole figury: ")
+        imgui.same_line()
+        imgui.set_next_item_width(self.szerokosc * 0.2)
+        zmieniono, watrosc = imgui.input_text("##pole_1",self.pole_1)
+        try:
+            if zmieniono:
+                if len(watrosc) == 1:
+                    if 'a' <= watrosc[0].lower() <= 'h':
+                        self.pole_1 = watrosc
+                elif len(watrosc) == 2:
+                    if 'a' <= watrosc[0].lower() <= 'h' and 1 <= int(watrosc[1]) <= 8:
+                        self.pole_1 = watrosc
+                elif len(watrosc) == 0:
+                    self.pole_1 = watrosc
+        except:
+            pass
+        imgui.same_line()
+        imgui.text("Pole docelowe: ")
+        imgui.same_line()
+        imgui.set_next_item_width(self.szerokosc * 0.2)
+        zmieniono, watrosc = imgui.input_text("##pole_2",self.pole_2)
+        try:
+            if len(watrosc) == 1:
+                if 'a' <= watrosc[0].lower() <= 'h':
+                    self.pole_2 = watrosc
+            elif len(watrosc) == 2:
+                if 'a' <= watrosc[0].lower() <= 'h' and 1 <= int(watrosc[1]) <= 8:
+                    self.pole_2 = watrosc
+            elif len(watrosc) == 0:
+                self.pole_2 = watrosc
+        except:
+            pass
 
+        #imgui.spacing()
+        imgui.same_line()
+        #imgui.set_cursor_pos_x((self.szerokosc * 0.5 - przycisk_szerokosc) / 2)
+        if imgui.button("Wykonaj ruch"):
+            self.udany_ruch = gra.wykonaj_ruch_manualnie(self.pole_1,self.pole_2)
+        #imgui.same_line()
+        #imgui.set_cursor_pos_x((self.szerokosc * 0.5 - przycisk_szerokosc) / 2 + 0.5 * self.szerokosc)
+        #if imgui.button("Cofnij ruch",imgui.ImVec2(przycisk_szerokosc, przycisk_wysokosc)):
+        #    gra.cofnij()
+        if not self.udany_ruch:
+            tekst = "Niepoprawny ruch!!!"
+            tekst_szerokosc = imgui.calc_text_size(tekst).x
+            imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+            imgui.text_colored((1.0, 0.0, 0.0, 1.0),tekst)
+
+        
+    def resetu_ruch(self):
+        self.pole_1 = ""
+        self.pole_2 = ""
+        self.udany_ruch = True
+
+    def resetuj(self):
+        self.czas_poczatkowy = 300
+        self.czas_za_ruch = 0
+        self.plik_partii = "przyklad.pgn"
+        self.opoznienie_odtwarzania = 2
+        self.pole_1 = ""
+        self.pole_2 = ""
+        self.udany_ruch = True
         
 
     def renderuj_klatke(self):

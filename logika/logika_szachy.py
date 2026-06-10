@@ -337,6 +337,25 @@ class Logika_szachy():
         if len(self.ostatnie_ruchy) > 5:
             self.ostatnie_ruchy.popleft()
 
+    def wykonaj_manulany_ruch(self,pole1,pole2):
+        poprzednia_figura = self.wybrana_figura
+        try:
+            k1 = ord(pole1[0].lower()) - ord('a')
+            w1 = int(pole1[1]) -1
+            k2 = ord(pole2[0].lower()) - ord('a')
+            w2 = int(pole2[1]) -1
+            if self.plansza_wlasna[k1][w1]:
+                self.wybierz_figure(self.plansza_wlasna[k1][w1])
+                if self.legalne_ruchy_wybranej_figury:
+                    for ruch in self.legalne_ruchy_wybranej_figury:
+                        if ruch[1] == w2*10+k2:
+                            self.rozpocznij_ruch_wlasny(ruch)
+                            return True
+        except:
+            pass
+        self.wybierz_figure(poprzednia_figura)
+        return False
+
 
         
 
