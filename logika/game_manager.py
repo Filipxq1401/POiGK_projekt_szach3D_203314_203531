@@ -50,7 +50,7 @@ class Game_manager():
             
             czy_koniec_czasu = self.logika.aktualizuj_czas(dt, self.stan == StanProgramu.Normalne)
             if czy_koniec_czasu:
-                print("Czas minął!")
+                #print("Czas minął!")
                 self.stan = StanProgramu.Koniec
                 self.czy_koniec = True
             
@@ -73,7 +73,6 @@ class Game_manager():
                     self.zapisz_logike()
                     self.czy_koniec = self.logika.nowa_tura()
                     self.svg_planszy = self.logika.get_svg_planszy(None)
-                    print(self.logika.get_historia())
                     self.nowa_plansza = True
                 else:
                     self.stan = StanProgramu.Menu_promocji
