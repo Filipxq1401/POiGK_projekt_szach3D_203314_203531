@@ -160,7 +160,8 @@ class Logika_szachy():
         #self.plansza_wlasna[k_akt][w_akt].porusz(ruch[1])
         #if ruch[2] == "bicie":
         #    self.plansza_wlasna[k_doc][w_doc].zbij()
-        self.wykonaj_ruch(self.plansza.san(ruch_chess))
+        if not(isinstance(self.plansza_wlasna[k_akt][w_akt],pionek) and (w_doc == 7 or w_doc == 0)):
+            self.wykonaj_ruch(self.plansza.san(ruch_chess))
         self.wybierz_figure(None)
 
     def nowa_tura(self):
@@ -318,7 +319,7 @@ class Logika_szachy():
         gracz = self.gracz_bialy if self.tura else self.gracz_czarny
         ruch = gracz.wykonaj_promocje(self.pionek_do_promocji,na_co)
         self.pionek_do_promocji = None
-        
+        self.plansza.push(ruch)
 
 
         
@@ -472,5 +473,21 @@ class Gracz():
                 nowa_figura = skoczek(self.kolor,pionek.get_pozycja())
                 figura_chess = chess.KNIGHT
         self.figury_na_planszy.append(nowa_figura)
+        for i,pion in enumerate(self.piony):
+            if pion == pionek:
+                self.piony.pop(i)
+                break
+        for i,pion in enumerate(self.figury_na_planszy):
+            if pion == pionek:
+                self.figury_na_planszy.pop(i)
+                break
+        
+        pozycja2 = pionek.get_pozycja()
+        w2= pozycja2//10
+        k2 = pozycja2%10
+        pozycja1 = pionek.poprzednia_pozycja
+        w1= pozycja1//10
+        k1 = pozycja1%10
+        return chess.Move(chess.square(k1,w1),chess.square(k2,w2),figura_chess)
         
             
