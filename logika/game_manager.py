@@ -175,7 +175,9 @@ class Game_manager():
     def zacznij_normalne(self,czas,bonus):
         self.logika.ustaw_czas(czas,bonus)
         self.stan = StanProgramu.Normalne
-        self.nowa_plansza = True
+        self.svg_planszy = self.logika.get_svg_planszy(None)
+        self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
+
 
     def zapisz_logike(self):
         self.historia.append(copy.deepcopy(self.logika))

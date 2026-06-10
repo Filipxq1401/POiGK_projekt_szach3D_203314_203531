@@ -112,10 +112,13 @@ class Silnik_UI():
     
     def wyswietl_historie(self, historia):
         imgui.separator()
-        imgui.push_font(self.font, 14)
-        imgui.text("Ostatnie ruchy:")
+        tekst = "Ostatnie ruchy:"
+        imgui.push_font(self.font,20)
+        tekst_szerokosc = imgui.calc_text_size(tekst).x
+        imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+        imgui.text(tekst)
         imgui.pop_font()
-        
+        imgui.separator()
         imgui.push_font(self.font, 13)
         imgui.columns(3, "historia_cols", True)
         imgui.text("Tura")
@@ -125,14 +128,24 @@ class Silnik_UI():
         imgui.text("Ruch")
         imgui.next_column()
         imgui.separator()
-        
-        for ruch, tura_bialych, numer in reversed(historia):
-            imgui.text(str(numer // 2 + 1))
-            imgui.next_column()
-            imgui.text("Biale" if tura_bialych else "Czarne")
-            imgui.next_column()
-            imgui.text(str(ruch))
-            imgui.next_column()
+        historia.reverse()
+        while len(historia) < 5:
+            historia.append([0,0,0])
+        for ruch, tura_bialych, numer in historia:
+            if [ruch, tura_bialych, numer] == [0,0,0]:
+                imgui.text("")
+                imgui.next_column()
+                imgui.text("")
+                imgui.next_column()
+                imgui.text("")
+                imgui.next_column()
+            else:
+                imgui.text(str(numer // 2 + 1))
+                imgui.next_column()
+                imgui.text("Biale" if tura_bialych else "Czarne")
+                imgui.next_column()
+                imgui.text(str(ruch))
+                imgui.next_column()
         
         imgui.columns(1)
         imgui.pop_font()
@@ -141,6 +154,13 @@ class Silnik_UI():
         imgui.image(imgui.ImTextureRef(plansza),imgui.ImVec2(self.szerokosc - 10,self.szerokosc - 10))
 
     def wyswietl_menu_promocji(self, logika):
+        imgui.separator()
+        imgui.push_font(self.font,20)
+        tekst = "Wybierz figure do promocji"
+        tekst_szerokosc = imgui.calc_text_size(tekst).x
+        imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+        imgui.text(tekst)
+        imgui.pop_font()
         imgui.separator()
 
         total = self.szerokosc - 20
