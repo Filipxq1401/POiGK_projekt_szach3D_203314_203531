@@ -28,7 +28,7 @@ class Silnik_3D():
         glShadeModel(GL_SMOOTH)
 
         # Parametry światła 
-        light_ambient  = [0.12, 0.12, 0.12, 1.0]
+        light_ambient  = [0.3, 0.3, 0.3, 1.0]  
         light_diffuse  = [1.5, 1.5, 1.5, 1.0]
         light_specular = [1.15, 1.15, 1.15, 1.0]
 

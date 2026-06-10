@@ -125,7 +125,7 @@ class Game_manager():
                 self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
                 czas_bialych, czas_czarnych = self.logika.get_czas_str()
                 self.silnik_ui.wyswietl_zegary(czas_bialych, czas_czarnych, self.logika.tura)
-                #self.silnik_ui.wyswietl_historie(self.logika.get_historia())
+                self.silnik_ui.wyswietl_historie(self.logika.get_historia())
                 if self.stan == StanProgramu.Menu_promocji:
                     self.czy_promocja = self.silnik_ui.wyswietl_menu_promocji(self.logika)
                 elif self.stan == StanProgramu.Koniec:

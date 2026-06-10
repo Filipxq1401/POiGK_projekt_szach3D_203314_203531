@@ -332,8 +332,8 @@ class Logika_szachy():
         self.gracz_bialy.bonus = bonus
         self.gracz_czarny.bonus = bonus
 
-    def dodaj_ruch_do_historii(self,ruch):
-        self.ostatnie_ruchy.append([ruch,self.tura])
+    def dodaj_ruch_do_historii(self, ruch):
+        self.ostatnie_ruchy.append([ruch, self.tura, self.numer_tury])
         if len(self.ostatnie_ruchy) > 5:
             self.ostatnie_ruchy.popleft()
 
@@ -357,14 +357,6 @@ class Logika_szachy():
         return False
 
 
-        
-
-
-        
-
-        
-
-        
 
 class Gracz():
     def __init__(self, kolor):
