@@ -134,12 +134,12 @@ class Game_manager():
                         self.reset_gry()
                 else:
                     self.silnik_ui.wyswietl_kontrolki(self)
-
+                self.silnik_ui.wyswietl_przyciski_dolne(self)  # <- tutaj, przed zakoncz
                 self.silnik_ui.zakoncz_okno()
             else:
                 self.silnik_ui.wyswietl_menu_poczatkowe(self)
+                self.silnik_ui.wyswietl_przyciski_dolne(self)  # <- tutaj, przed zakoncz
                 self.silnik_ui.zakoncz_okno()
-
             self.silnik_3d.ustaw_kamere_swiatlo(self.kat,dt)
             self.silnik_3d.wyswietl_plansze()
             if pola_do_podswietlenia:

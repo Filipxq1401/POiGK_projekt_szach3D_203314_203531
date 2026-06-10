@@ -1,6 +1,7 @@
 from imgui_bundle import imgui
 from imgui_bundle.python_backends.pygame_backend import PygameRenderer
 import chess
+import pygame
 class Silnik_UI():
     def __init__(self, szer, wys):
         self.szerokosc = szer / 4
@@ -35,6 +36,22 @@ class Silnik_UI():
         
         imgui.begin("Prawy panel", flags=flagi_okna)
         imgui.push_font(self.font,15)
+
+    def wyswietl_przyciski_dolne(self, gra):
+        wysokosc_przyciskow = 55
+        imgui.set_cursor_pos_y(self.wysokosc - wysokosc_przyciskow)
+        imgui.separator()
+        
+        szer = (self.szerokosc - 20 - imgui.get_style().item_spacing.x * 2) / 3
+        
+        if imgui.button("Reset", imgui.ImVec2(szer, 35)):
+            gra.reset_gry()
+        imgui.same_line()
+        if imgui.button("Cofnij", imgui.ImVec2(szer, 35)):
+            gra.cofnij()
+        imgui.same_line()
+        if imgui.button("Wyjdz", imgui.ImVec2(szer, 35)):
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
 
     def zakoncz_okno(self):
         imgui.pop_font()
