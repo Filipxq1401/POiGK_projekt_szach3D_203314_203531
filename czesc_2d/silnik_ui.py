@@ -11,7 +11,7 @@ class Silnik_UI():
         self.ruch=""
         self.blad = False
 
-        self.czas_poczatkowy = 600
+        self.czas_poczatkowy = 300
         self.czas_za_ruch = 0
         self.plik_partii = ""
         self.opoznienie_odtwarzania = 2
@@ -154,7 +154,7 @@ class Silnik_UI():
 
         imgui.set_cursor_pos_x((self.szerokosc - przycisk_szerokosc) / 2)
         if imgui.button("Zacznij gre", imgui.ImVec2(przycisk_szerokosc, przycisk_wysokosc)):
-            gra.zacznij_normalne()
+            gra.zacznij_normalne(self.czas_poczatkowy,self.czas_za_ruch)
 
         imgui.spacing()
 

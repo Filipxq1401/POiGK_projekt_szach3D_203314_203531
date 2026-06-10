@@ -70,6 +70,7 @@ class Game_manager():
                     self.stan = StanProgramu.Obracanie_kamery
                     self.czy_koniec = self.logika.nowa_tura()
                     self.svg_planszy = self.logika.get_svg_planszy(None)
+                    print(self.logika.get_historia())
                     self.nowa_plansza = True
                 else:
                     self.stan = StanProgramu.Menu_promocji
@@ -157,7 +158,8 @@ class Game_manager():
     def cofnij_ruch(self):
         self.logika.cofnij_ruch()
 
-    def zacznij_normalne(self):
+    def zacznij_normalne(self,czas,bonus):
+        self.logika.ustaw_czas(czas,bonus)
         self.stan = StanProgramu.Normalne
 
 #init 
