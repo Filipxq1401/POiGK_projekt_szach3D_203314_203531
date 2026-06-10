@@ -57,7 +57,7 @@ class Silnik_UI():
         #        imgui.text(str(plansza)[16*i + 2*j] + " ")
         #imgui.end_disabled()
         #imgui.text(plansza_str)
-        imgui.image(imgui.ImTextureRef(plansza_zdjecie),imgui.ImVec2(self.szerokosc,self.szerokosc))
+        imgui.image(imgui.ImTextureRef(plansza_zdjecie),imgui.ImVec2(self.szerokosc - 10,self.szerokosc - 10))
         imgui.end()
 
     def renderuj_klatke(self):

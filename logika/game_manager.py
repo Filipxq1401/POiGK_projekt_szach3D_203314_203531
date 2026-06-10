@@ -58,10 +58,10 @@ class Game_manager():
                 self.czy_koniec = self.logika.nowa_tura()
                 self.svg_planszy = self.logika.get_svg_planszy(None)
                 self.nowa_plansza = True
-                if not self.logika.promocja():
-                    self.stan = StanProgramu.Obracanie_kamery
-                else:
-                    self.stan = StanProgramu.Menu_promocji
+                #if not self.logika.promocja():
+                self.stan = StanProgramu.Obracanie_kamery
+                #else:
+                  #  self.stan = StanProgramu.Menu_promocji
             
             if self.czy_koniec and self.stan == StanProgramu.Normalne:
                 self.stan = StanProgramu.Koniec
