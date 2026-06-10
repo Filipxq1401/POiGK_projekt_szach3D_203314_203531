@@ -14,6 +14,7 @@ class figura:
         klasa = self.__class__
         self.kolor = kolor
         self.pozycja = pozycja_poczatkowa
+        self.poprzednia_pozycja = pozycja_poczatkowa
         self.xyz_poczatkowe = []
         self.xyz_aktualne = []
         self.xyz_docelowe = []
@@ -50,10 +51,8 @@ class figura:
             klasa.model_czarny.rysuj()
     
     def porusz(self,nowa_pozycja):
+        self.poprzednia_pozycja = self.pozycja
         self.pozycja = nowa_pozycja
-
-    def zbij(self):
-        self.pozycja = 88
 
     def get_pozycja(self):
         return self.pozycja
@@ -102,7 +101,7 @@ class figura:
         self.czy_rusza = True
         klasa = self.__class__
         self.xyz_aktualne = np.array(klasa.get_xyz_na_planszy(self), dtype=float)
-        self.pozycja = docelowe
+        self.porusz(docelowe)
         self.xyz_docelowe = np.array(klasa.get_xyz_na_planszy(self), dtype=float)
         self.faza = 3
         self.czy_ruch = True

@@ -80,7 +80,9 @@ class Game_manager():
                 self.stan = StanProgramu.Koniec
             
             if self.stan == StanProgramu.Menu_promocji and self.czy_promocja:
-                self.stan = StanProgramu.Normalne
+                #self.svg_planszy = self.logika.get_svg_planszy(None)
+                #self.nowa_plansza = True
+                self.stan = StanProgramu.Poruszanie_figury
 
             aktualne_pole = self.silnik_3d.znajdz_pole(pygame.mouse.get_pos()) # pole na którym jest myszka
             #pola_do_podswietlenia = self.logika.podswietlenie_ograniczone(aktualne_pole)
