@@ -1,8 +1,7 @@
 from OpenGL.GL import *
 from OpenGL.GLU import *
-import chess
-import os
 import numpy as np
+import pygame
 from logika.figury import krol, pionek, wieza, goniec, skoczek, hetman
 from czesc_3d.model_3d import model_3d
 
@@ -19,7 +18,8 @@ class Silnik_3D():
         glClearColor(0.05, 0.15, 0.3, 1.0)
         self.model_mat = None
         self.szachownica = model_3d("10586_Chess Board_v2_Iterations-2.obj", centruj=True)
-
+        self.tex_planszy = None
+        self.rozmiar_planszy = None
         
         
         # Wczytywanie texutur figur (możliwe że nie wchodze całe, będzie trzeba pobrać orginalengo dla każdej figury)
@@ -112,6 +112,18 @@ class Silnik_3D():
             
             figura.wyswietl()
             glPopMatrix()
+    
+    def zaladuj_plansze(self,svg):
+        if self.tex_planszy is None:
+            self.tex_planszy = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.tex_planszy)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        #szer,wys = svg.get_size()
+        self.rozmiar_planszy = svg.get_size()
+        svg_data = pygame.image.tobytes(svg, "RGBA", False)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.rozmiar_planszy[0], self.rozmiar_planszy[1], 0, GL_RGBA, GL_UNSIGNED_BYTE, svg_data)
+
 
     def znajdz_pole(self, pozycja):
         x ,y = pozycja

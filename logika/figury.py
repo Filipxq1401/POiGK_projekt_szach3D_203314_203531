@@ -1,5 +1,6 @@
 from czesc_3d.model_3d import model_3d
 import numpy as np
+
 PREDKOSC = 10
 class figura:
     model_bialy = None
@@ -110,7 +111,12 @@ class figura:
         self.xyz_aktualne = np.array(klasa.get_xyz_na_planszy(self), dtype=float)
         self.xyz_docelowe = np.array(docelowy_xyz, dtype=float)
         self.xyz_posrednie = self.xyz_aktualne.copy()
-        self.xyz_posrednie[2] += 5.0
+        roznica = self.xyz_docelowe - self.xyz_aktualne
+        roznica_dlugosc = np.linalg.norm(roznica)
+        kierunek = roznica / roznica_dlugosc
+        przesuniecie = kierunek * 3
+        self.xyz_posrednie[2] += 3.0
+        self.xyz_posrednie += przesuniecie
         self.faza = 1
 
     def przesun(self, dt):
@@ -122,6 +128,9 @@ class figura:
 
             roznica = cel - self.xyz_aktualne
             roznica_dlugosc = np.linalg.norm(roznica)
+            if roznica_dlugosc < 0.001:
+                self.czy_rusza = False
+                return True
             kierunek = roznica / roznica_dlugosc
             przesuniecie = kierunek * PREDKOSC * dt
 

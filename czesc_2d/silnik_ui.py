@@ -11,7 +11,7 @@ class Silnik_UI():
         self.ruch=""
         self.blad = False
 
-    def generuj_klatke(self,game_manager,plansza):
+    def generuj_klatke(self,game_manager,plansza,plansza_zdjecie,rozmiar):
         self.impl.process_inputs()
         imgui.new_frame()
         
@@ -44,19 +44,20 @@ class Silnik_UI():
         
         #historia_pusta = len(game_manager.historia_ruchow) == 0
         #imgui.begin_disabled(historia_pusta)
-        
+        imgui.same_line()
         if imgui.button("Cofnij"):
             game_manager.cofnij_ruch()
         
         imgui.separator()
-        imgui.text("  A  B  C  D  E  F  G  H")
-        for i in range(0,8):
-            imgui.text(str(8-i))
-            for j in range(0,8):
-                imgui.same_line()
-                imgui.text(str(plansza)[16*i + 2*j] + " ")
+        #imgui.text("  A  B  C  D  E  F  G  H")
+        #for i in range(0,8):
+        #    imgui.text(str(8-i))
+        #    for j in range(0,8):
+        #        imgui.same_line()
+        #        imgui.text(str(plansza)[16*i + 2*j] + " ")
         #imgui.end_disabled()
         #imgui.text(plansza_str)
+        imgui.image(imgui.ImTextureRef(plansza_zdjecie),imgui.ImVec2(self.szerokosc,self.szerokosc))
         imgui.end()
 
     def renderuj_klatke(self):

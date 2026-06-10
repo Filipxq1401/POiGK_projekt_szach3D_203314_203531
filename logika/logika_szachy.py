@@ -1,7 +1,9 @@
 import chess
+import chess.svg
 from logika.figury import *
 import copy
-
+import io
+import cairosvg
 class Logika_szachy():
     def __init__(self):
         self.plansza = chess.Board()
@@ -12,6 +14,10 @@ class Logika_szachy():
         self.plansza_wlasna = self.stworz_nowa_plansze()
         self.tura = True # tura białego
         self.numer_tury = 0 
+        self.wynik = 0
+        self.powod_remisu = 0
+        self.poprzednie_podswietlane_pola = []
+
     def wykonaj_ruch(self,ruch):
         try:
             move = self.plansza.parse_san(ruch)
@@ -41,14 +47,24 @@ class Logika_szachy():
         
         return self.plansza_wlasna
     
+    def podswietlenie_baza(self,hover):
+        pola_do_podświetlenia = []
+        if hover is not None:
+            pola_do_podświetlenia.append([hover, 0,1,0]) # czerwone
+        if self.wybrana_figura:
+            pola_do_podświetlenia.append([self.wybrana_figura.get_pozycja(),1,1,0])
+        if self.gracz_bialy.czy_szach():
+            pola_do_podświetlenia.append([self.gracz_bialy.pozycja_krola(),1,0,0])
+        if self.gracz_czarny.czy_szach():
+            pola_do_podświetlenia.append([self.gracz_czarny.pozycja_krola(),1,0,0])
+       
+        return pola_do_podświetlenia
+    
     def przetworz_myszke(self,wybrane,hover):
         pola_do_podświetlenia = []
-        if self.gracz_bialy.czy_szach():
-            pola_do_podświetlenia.append([self.gracz_bialy.pozycja_krola(),0,0,1])
-        if self.gracz_czarny.czy_szach():
-            pola_do_podświetlenia.append([self.gracz_czarny.pozycja_krola(),0,0,1])
-        if hover is not None:
-            pola_do_podświetlenia.append([hover, 1,0,0]) # czerwone
+        pola_do_podświetlenia = self.podswietlenie_baza(hover)
+        if len(pola_do_podświetlenia) == 0:
+            pola_do_podświetlenia = []
         if wybrane is not None:
             kolumna = wybrane % 10
             wiersz = wybrane // 10
@@ -64,7 +80,7 @@ class Logika_szachy():
         if self.wybrana_figura:
             if self.legalne_ruchy_wybranej_figury:
                 for ruch in self.legalne_ruchy_wybranej_figury:
-                    pola_do_podświetlenia.append([ruch[1],0,1,0])
+                    pola_do_podświetlenia.append([ruch[1],0,0,1])
         return pola_do_podświetlenia
         
     def wybierz_figure(self,figura):
@@ -146,14 +162,53 @@ class Logika_szachy():
         #    self.plansza_wlasna[k_doc][w_doc].zbij()
         self.wykonaj_ruch(self.plansza.san(ruch_chess))
         self.wybierz_figure(None)
+
+    def nowa_tura(self):
         self.plansza_wlasna = self.stworz_nowa_plansze()
         self.tura = not self.tura
+        if self.tura:
+            self.gracz_bialy.resetuj_przelot()
+        else:
+            self.gracz_czarny.resetuj_przelot()
         self.numer_tury += 1
         czy_jakis_ruch = self.czy_ma_ruchy()
+        self.gracz_bialy.ustaw_szach(self.czy_szach(True))
+        self.gracz_czarny.ustaw_szach(self.czy_szach(False))
+        if not czy_jakis_ruch:
+            if self.tura:
+                if self.gracz_bialy.czy_szach():
+                    self.wynik = 2
+                    return True
+                else:
+                    self.wynik = 0
+                    self.powod_remisu = 2
+                    return True
+            else:
+                if self.gracz_czarny.czy_szach():
+                    self.wynik = 1
+                    return True
+                else:
+                    self.wynik = 0
+                    self.powod_remisu = 2
+                    return True
+        else:
+            wynik = self.plansza.outcome()
+            if wynik:
+                if wynik.result() == "1/2-1/2":
+                    self.wynik = 0
+                    self.powod_remisu = wynik.termination()
+                elif wynik.result() == "1-0":
+                    self.wynik = 1
+                else:
+                    self.wynik = 2
+                return True
+            else:
+                return False
+
         
 
-    def czy_szach(self):
-        if self.tura:
+    def czy_szach(self,kolor):
+        if kolor:
             pozycja_krola = self.gracz_bialy.pozycja_krola()
             figury = self.gracz_czarny.get_figury_na_planszy()
             gracz = self.gracz_bialy
@@ -206,6 +261,31 @@ class Logika_szachy():
         return self.gracz_bialy.get_poruszajace() + self.gracz_czarny.get_poruszajace()
     def get_zbite(self):
         return self.gracz_bialy.get_zbite() + self.gracz_czarny.get_zbite()
+    
+    def get_svg_planszy(self,pola_do_podswietlenia):
+        fill_dict = {}
+        if pola_do_podswietlenia:
+            for pole in pola_do_podswietlenia:
+                pozycja,r,g,b = pole
+                wiersz = pozycja // 10
+                kolumna = pozycja % 10
+                square= chess.square(kolumna, wiersz)
+                r_int = int(max(0.0, min(1.0, r)) * 255)
+                g_int = int(max(0.0, min(1.0, g)) * 255)
+                b_int = int(max(0.0, min(1.0, b)) * 255)
+                hex_color = f"#{r_int:02x}{g_int:02x}{b_int:02x}80"
+                fill_dict[square] = hex_color
+
+        svg = chess.svg.board(
+            self.plansza,
+            orientation=self.tura,
+            borders=True,
+            fill=fill_dict
+        )
+        svg_bytes = cairosvg.svg2png(bytestring=svg.encode('utf-8'), scale=2.0)
+        svg_plik = io.BytesIO(svg_bytes)
+        return svg_plik
+
         
 
         
@@ -259,6 +339,9 @@ class Gracz():
     
     def rozpocznij_ruch(self,plansza,ruch):
         self.figury_w_ruchu.append(plansza[ruch[0]%10][ruch[0]//10])
+        if ruch[2] == "podwojny":
+            plansza[ruch[0]%10][ruch[0]//10].czy_do_przelotu = True
+
         plansza[ruch[0]%10][ruch[0]//10].rozpocznij_ruch(ruch[1])
         
         if ruch[2] == "roszada_krotka":
@@ -326,3 +409,7 @@ class Gracz():
 
         docelowy_xyz = [x_offset, y_offset, 0]
         self.figura_zbijana.rozpocznij_zbijanie(docelowy_xyz)
+
+    def resetuj_przelot(self):
+        for pionek in self.piony:
+            pionek.czy_do_przelotu = False
