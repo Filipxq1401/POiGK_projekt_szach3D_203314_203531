@@ -5,12 +5,17 @@ import pywavefront
 import os
 
 class model_3d():
-    def __init__(self, nazwa, kolor_piona=[0.7, 0.7, 0.7], tekstura=None, centruj=True, tekstura_id = None):
+    def __init__(self, nazwa, kolor_piona=[0.7,0.7,0.7], tekstura=None, centruj=True, tekstura_id=None, 
+             specular=[0.9, 0.9, 0.9, 1.0],  # Z [0.2, 0.2, 0.2, 1.0] -> jasny, wyraźny błysk
+             shininess=80.0,                 # Z 16.0 -> ostrzejszy, skupiony punkt światła
+             ambient_factor=0.25):
         path = os.path.join("czesc_3d/obj", nazwa) 
         
         self.tex_id = None
         self.model_w_gpu = glGenLists(1)
-
+        self.specular = specular
+        self.shininess = shininess
+        self.ambient_factor = ambient_factor
         model = pywavefront.Wavefront(path, create_materials=True)
         self.material = list(model.materials.values())[0]
         self.wierzcholki = list(self.material.vertices) 
@@ -81,4 +86,24 @@ class model_3d():
         return tex_id
     
     def rysuj(self):
+    # Ustaw materiał
+        ambient = [self.kolor[0] * self.ambient_factor, self.kolor[1] * self.ambient_factor, self.kolor[2] * self.ambient_factor, 1.0]
+        diffuse = [self.kolor[0], self.kolor[1], self.kolor[2], 1.0]
+
+        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambient)
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuse)
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, self.specular)
+        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, self.shininess)
+
+        if self.tex_id:
+            glEnable(GL_TEXTURE_2D)
+            glBindTexture(GL_TEXTURE_2D, self.tex_id)
+            glColor3f(1.0, 1.0, 1.0)
+        else:
+            glDisable(GL_TEXTURE_2D)
+            glColor3f(self.kolor[0], self.kolor[1], self.kolor[2])
+
         glCallList(self.model_w_gpu)
+
+        if self.tex_id:
+            glBindTexture(GL_TEXTURE_2D, 0)

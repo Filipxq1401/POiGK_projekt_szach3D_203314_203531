@@ -20,19 +20,28 @@ class Silnik_3D():
         self.szachownica = model_3d("10586_Chess Board_v2_Iterations-2.obj", centruj=True)
         self.tex_planszy = None
         self.rozmiar_planszy = None
-        
-        
-        # Wczytywanie texutur figur (możliwe że nie wchodze całe, będzie trzeba pobrać orginalengo dla każdej figury)
-        #self.modele_figur = {}
-        #for typ_figury, nazwa_pliku in pliki_figur.items():
-        #    self.modele_figur[(typ_figury, chess.WHITE)] = model_3d(nazwa_pliku, tekstura="białe_piony.jpg")
-        #    self.modele_figur[(typ_figury, chess.BLACK)] = model_3d(nazwa_pliku, tekstura="Czarne_piony.jpg")
+
+        # Oświetlenie globalne
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
+        glEnable(GL_NORMALIZE)
+        glShadeModel(GL_SMOOTH)
+
+        # Parametry światła (możesz dostosować)
+        light_ambient  = [0.12, 0.12, 0.12, 1.0]
+        light_diffuse  = [1.5, 1.5, 1.5, 1.0]
+        light_specular = [1.15, 1.15, 1.15, 1.0]
+
+        glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient)
+        glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse)
+        glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular)
         
     
-    def ustaw_kamere(self, kat, dt):
+    def ustaw_kamere_swiatlo(self, kat, dt):
         glViewport(0, 0, int(self.szerokosc), int(self.wysokosc))
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
+
 
         kamera_x = 0.0
         kamera_y = -30 * np.sin(np.deg2rad(50))
@@ -40,7 +49,18 @@ class Silnik_3D():
             
         gluLookAt(kamera_x, kamera_y, kamera_z,  0.0, 0.0, 1.0,  0.0, 0.0, 1.0)
         
+        promien_xy = 30 * np.sin(np.deg2rad(50)) 
+        
+        kat_swiatla_rad = np.deg2rad(-90 + 135)
+        
+        swiatlo_x = promien_xy * np.cos(kat_swiatla_rad)
+        swiatlo_y = promien_xy * np.sin(kat_swiatla_rad)
+        swiatlo_z = kamera_z  
+        
+        glLightfv(GL_LIGHT0, GL_POSITION, [swiatlo_x, swiatlo_y, swiatlo_z, 1.0])
+        
         glRotatef(kat, 0, 0, 1)
+        
         self.model_mat = glGetDoublev(GL_MODELVIEW_MATRIX)
 
     def wyswietl_plansze(self):
@@ -161,6 +181,10 @@ class Silnik_3D():
 
 
 def wyswietl_szescian(kolor):
+    glDisable(GL_LIGHTING)
+    glEnable(GL_BLEND)
+    glDisable(GL_TEXTURE_2D)
+    
     wierzcholki = [
         (1, 1, 1),
         (1, 1, -1),
@@ -187,4 +211,7 @@ def wyswietl_szescian(kolor):
         for wierzholek in sciana:
             glVertex3fv(wierzcholki[wierzholek])
     glEnd()
+    glEnable(GL_TEXTURE_2D)
+    glDisable(GL_BLEND)
+    glEnable(GL_LIGHTING)
     
