@@ -45,13 +45,12 @@ class Game_manager():
         while running:
             kliknete_pole = None
             dt = clock.tick(60) / 1000.0 # czas ruchu kamery
-            #----------------- Obsługa eventów -----------------
-           
-            aktywny_gracz = self.logika.gracz_bialy if self.logika.tura else self.logika.gracz_czarny
-            if aktywny_gracz.czas > 0:
-                aktywny_gracz.czas -= dt
-            else:
+            
+            czy_koniec_czasu = self.logika.aktualizuj_czas(dt, self.stan == StanProgramu.Normalne)
+            if czy_koniec_czasu:
                 print("Czas minął!")
+                self.stan = StanProgramu.Koniec
+                self.czy_koniec = True
             
             for event in pygame.event.get():
                 self.silnik_ui.impl.process_event(event)
@@ -118,7 +117,8 @@ class Game_manager():
             
             if self.stan != StanProgramu.Menu_poczatkowe:
                 self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
-                #self.silnik_ui.wyswietl_zegary(self.logika.get_czas())
+                czas_bialych, czas_czarnych = self.logika.get_czas_str()
+                self.silnik_ui.wyswietl_zegary(czas_bialych, czas_czarnych, self.logika.tura)
                 #self.silnik_ui.wyswietl_historie(self.logika.get_historia())
                 #self.silnik_ui.wyswietl_panel_kontrolny(self)
                 if self.stan == StanProgramu.Menu_promocji:

@@ -240,6 +240,29 @@ class Logika_szachy():
         return False
         
         
+    def aktualizuj_czas(self, dt, stan_programu_normalne):
+        if not stan_programu_normalne:
+            return False
+
+        aktywny_gracz = self.gracz_bialy if self.tura else self.gracz_czarny
+        
+        if aktywny_gracz.czas > 0:
+            aktywny_gracz.czas -= dt
+            return False
+        else:
+            aktywny_gracz.czas = 0
+            self.wynik = 2 if self.tura else 1
+            self.powod_remisu = 0 
+            return True
+
+    def get_czas_str(self):
+        def formatuj(sekundy):
+            minuty = int(sekundy) // 60
+            sek = int(sekundy) % 60
+            return f"{minuty:02d}:{sek:02d}"
+
+        return formatuj(self.gracz_bialy.czas), formatuj(self.gracz_czarny.czas)
+
 
     def get_plansza(self):
         return self.plansza_wlasna
@@ -343,6 +366,7 @@ class Gracz():
                 figury.append(figura)
         return figury
     
+
     def czy_szach(self):
         return self.czy_w_szachu
     def ustaw_szach(self,szach):
