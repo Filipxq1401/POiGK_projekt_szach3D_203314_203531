@@ -16,7 +16,7 @@ class Logika_szachy():
         self.numer_tury = 0 
         self.wynik = 0
         self.powod_remisu = 0
-        self.poprzednie_podswietlane_pola = []
+        self.pionek_do_promocji = None
 
     def wykonaj_ruch(self,ruch):
         try:
@@ -285,6 +285,18 @@ class Logika_szachy():
         svg_bytes = cairosvg.svg2png(bytestring=svg.encode('utf-8'), scale=2.0)
         svg_plik = io.BytesIO(svg_bytes)
         return svg_plik
+    
+    def czy_promocja(self):
+        gracz = self.gracz_bialy if self.tura else self.gracz_czarny
+        promocja, self.pionek_do_promocji = gracz.czy_pionek_promocja()
+        return promocja
+    
+    def wykonaj_promocje(self,na_co):
+        gracz = self.gracz_bialy if self.tura else self.gracz_czarny
+        ruch = gracz.wykonaj_promocje(self.pionek_do_promocji,na_co)
+        self.pionek_do_promocji = None
+        
+
 
         
 
@@ -299,13 +311,13 @@ class Gracz():
         self.piony = [pionek(self.kolor,i) for i in range(0,8)]
         #self.piony = []
         self.krol = krol(self.kolor)
-        self.hetman = hetman(self.kolor)
+        self.hetman = [hetman(self.kolor)]
         wiersz = 0 if kolor else 70
         self.wieze = [wieza(self.kolor,wiersz), wieza(self.kolor,wiersz + 7)]
         self.skoczki = [skoczek(self.kolor,wiersz + 1), skoczek(self.kolor,wiersz + 6)]
         self.gonce = [goniec(self.kolor,wiersz + 2), goniec(self.kolor,wiersz + 5)]
         self.zbite_figury = []
-        self.figury_na_planszy = self.piony + [self.krol, self.hetman] + self.wieze + self.skoczki + self.gonce
+        self.figury_na_planszy = self.piony + [self.krol] + self.hetman + self.wieze + self.skoczki + self.gonce
         self.czy_w_szachu = False
         self.ile_zbitych = 0
         #self.czy_w_ruchu = False
@@ -413,3 +425,28 @@ class Gracz():
     def resetuj_przelot(self):
         for pionek in self.piony:
             pionek.czy_do_przelotu = False
+
+    def czy_pionek_promocja(self):
+        wiersz = 7 if self.kolor else 0
+        for pionek in self.piony:
+            if pionek.get_pozycja()//10 == wiersz:
+                return True, pionek
+        return False, None
+    
+    def wykonaj_promocje(self,pionek,na_co):
+        match na_co:
+            case 0:
+                nowa_figura = hetman(self.kolor,pionek.get_pozycja())
+                figura_chess = chess.QUEEN
+            case 1:
+                nowa_figura = wieza(self.kolor,pionek.get_pozycja())
+                figura_chess = chess.ROOK
+            case 2:
+                nowa_figura = goniec(self.kolor,pionek.get_pozycja())
+                figura_chess = chess.BISHOP
+            case 3:
+                nowa_figura = skoczek(self.kolor,pionek.get_pozycja())
+                figura_chess = chess.KNIGHT
+        self.figury_na_planszy.append(nowa_figura)
+        
+            

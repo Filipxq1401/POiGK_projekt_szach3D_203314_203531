@@ -51,24 +51,11 @@ class Silnik_3D():
         
     def wyswietl_figur_plansza(self, figury):
         for figura in figury:
-            if figura.get_pozycja() == 88:
-                continue
 
-            pozycja = figura.get_pozycja()
-            wiersz = pozycja // 10
-            kolumna = pozycja % 10
-            
-            # Obliczenia pozycji
-            wysokosc_z = 2.0
-            if isinstance(figura, krol):
-                wysokosc_z += 0.25
-                
-            offset_y = 0.5
-            if not isinstance(figura, pionek):
-                offset_y += 0.3 if figura.kolor else +0.3
+            x,y,z = figura.get_xyz_na_planszy()
             
             glPushMatrix()
-            glTranslatef(-7 + 2*kolumna, -7 + 2*wiersz + offset_y, wysokosc_z)
+            glTranslatef(x,y,z)
             glScalef(5.5, 5.5, 5.5) 
             glRotatef(90, 1, 0, 0)
             

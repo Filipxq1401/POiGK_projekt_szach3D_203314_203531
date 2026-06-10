@@ -17,6 +17,7 @@ class Game_manager():
         pygame.display.set_caption("Szachy 3D")
         pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLEBUFFERS, 1)
         pygame.display.gl_set_attribute(pygame.GL_MULTISAMPLESAMPLES, 4)
+        
         self.silnik_3d = Silnik_3D(self.szerokosc,self.wysokosc)
         self.silnik_ui = Silnik_UI(self.szerokosc,self.wysokosc)
         self.logika = Logika_szachy()
@@ -25,8 +26,19 @@ class Game_manager():
         self.czy_koniec = False
         self.svg_planszy = self.logika.get_svg_planszy(None)
         self.nowa_plansza = True
+        self.poprzednie_podswietlane_pola = []
+        self.czy_promocja = False
 
-
+    def reset_gry(self):
+        self.logika = Logika_szachy()
+        self.stan = StanProgramu.Normalne
+        self.kat = 0
+        self.czy_koniec = False
+        self.svg_planszy = self.logika.get_svg_planszy(None)
+        self.nowa_plansza = True
+        self.poprzednie_podswietlane_pola = []
+        self.czy_promocja = False
+    
     def start_gry(self):
         clock = pygame.time.Clock()
         running = True
@@ -55,25 +67,32 @@ class Game_manager():
             if self.logika.czy_cos_sie_rusza():
                 self.stan = StanProgramu.Poruszanie_figury
             elif self.stan == StanProgramu.Poruszanie_figury:
-                self.czy_koniec = self.logika.nowa_tura()
-                self.svg_planszy = self.logika.get_svg_planszy(None)
-                self.nowa_plansza = True
-                #if not self.logika.promocja():
-                self.stan = StanProgramu.Obracanie_kamery
-                #else:
-                  #  self.stan = StanProgramu.Menu_promocji
+                if not self.logika.czy_promocja():
+                    self.stan = StanProgramu.Obracanie_kamery
+                    self.czy_koniec = self.logika.nowa_tura()
+                    self.svg_planszy = self.logika.get_svg_planszy(None)
+                    self.nowa_plansza = True
+                else:
+                    self.stan = StanProgramu.Menu_promocji
+                    self.czy_promocja = False
             
             if self.czy_koniec and self.stan == StanProgramu.Normalne:
                 self.stan = StanProgramu.Koniec
+            
+            if self.stan == StanProgramu.Menu_promocji and self.czy_promocja:
+                self.stan = StanProgramu.Normalne
 
             aktualne_pole = self.silnik_3d.znajdz_pole(pygame.mouse.get_pos()) # pole na którym jest myszka
             #pola_do_podswietlenia = self.logika.podswietlenie_ograniczone(aktualne_pole)
             pola_do_podswietlenia = []
             poruszajace = []
+            self.silnik_ui.inicjalizuj_klatke()
             match self.stan:
                 case StanProgramu.Normalne:
                     pola_do_podswietlenia = self.logika.przetworz_myszke(kliknete_pole,aktualne_pole)
-                    #plansza = self.logika.get_plansza()
+                    if pola_do_podswietlenia[1:] != self.poprzednie_podswietlane_pola and aktualne_pole is not None:
+                        self.svg_planszy = self.logika.get_svg_planszy(pola_do_podswietlenia[1:])
+                        self.nowa_plansza = True
                 case StanProgramu.Poruszanie_figury:
                     self.logika.porusz(dt)
                     poruszajace = self.logika.get_poruszajace_figury()
@@ -91,23 +110,22 @@ class Game_manager():
                             self.kat += krok if roznica > 0 else -krok
                     else:
                         self.stan = StanProgramu.Normalne
-            #if pola_do_podswietlenia:
-            #    widziane = set()
-            #    wynik = []
-            #    for pole in pola_do_podswietlenia:
-            #        if pole[0] not in widziane:
-            #            wynik.append(pole)
-            #            widziane.add(pole[0])
-            #    pola_do_podswietlenia = wynik
-
-            if pola_do_podswietlenia[1:] != self.logika.poprzednie_podswietlane_pola and aktualne_pole is not None:
-                self.svg_planszy = self.logika.get_svg_planszy(pola_do_podswietlenia[1:])
-                self.nowa_plansza = True
             
             if self.nowa_plansza:
                 self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
             
-            self.silnik_ui.generuj_klatke(self,self.logika.plansza,self.silnik_3d.tex_planszy,self.silnik_3d.rozmiar_planszy)
+            if self.stan != StanProgramu.Menu_poczatkowe:
+                self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
+                #self.silnik_ui.wyswietl_zegary(self.logika.get_czas())
+                #self.silnik_ui.wyswietl_historie(self.logika.get_historia())
+                #self.silnik_ui.wyswietl_panel_kontrolny(self)
+                if self.stan == StanProgramu.Menu_promocji:
+                    self.czy_promocja = self.silnik_ui.wyswietl_menu_promocji(self.logika)
+                self.silnik_ui.zakoncz_okno()
+            else:
+                #self.silnik_ui.wyswietl_menu_poczatkowe()
+                self.silnik_ui.zakoncz_okno()
+
             self.silnik_3d.ustaw_kamere(self.kat,dt)
             self.silnik_3d.wyswietl_plansze()
             if pola_do_podswietlenia:
@@ -117,12 +135,12 @@ class Game_manager():
                 self.silnik_3d.wyswietl_poruszajace(poruszajace)
             zbite = self.logika.get_zbite()
             self.silnik_3d.wyswietl_zbite(zbite)
-            #self.silnik_ui.renderuj_zegary(self.logika.gracz_bialy.czas, self.logika.gracz_czarny.czas)
+            
             self.silnik_ui.renderuj_klatke()
             
             if pola_do_podswietlenia and aktualne_pole:
                 pola_do_podswietlenia.pop(0)
-            self.logika.poprzednie_podswietlane_pola = pola_do_podswietlenia
+            self.poprzednie_podswietlane_pola = pola_do_podswietlenia
             self.nowa_plansza = False
             
             pygame.display.flip()
@@ -151,4 +169,5 @@ class StanProgramu(Enum):
     Menu_promocji = auto()
     Obracanie_kamery = auto()
     Koniec = auto()
+    Menu_poczatkowe = auto()
     

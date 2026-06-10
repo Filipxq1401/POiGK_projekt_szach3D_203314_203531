@@ -62,7 +62,7 @@ class figura:
         wiersz = self.pozycja // 10
         kolumna = self.pozycja % 10
         if offset_y == 0:
-            dy = 0.8 if self.kolor else 0.2
+            dy = 0.8 if self.kolor else 0.8
         else:
             dy = offset_y
         return [-7 + 2 * kolumna ,  -7 + 2 * wiersz + dy, 2 + offset_z]
@@ -123,6 +123,9 @@ class figura:
 
     def przesun(self, dt):
         try:
+            if not self.czy_ruch:
+                print(self.xyz_aktualne)
+                print(dt)
             if self.faza == 1:
                 cel = self.xyz_posrednie1
             elif self.faza == 2:
@@ -135,8 +138,13 @@ class figura:
             roznica = cel - self.xyz_aktualne
             roznica_dlugosc = np.linalg.norm(roznica)
             if roznica_dlugosc < 0.001:
-                self.czy_rusza = False
-                return True
+                if self.faza < 3:
+                    self.faza += 1
+                    return False
+                else:
+                    self.czy_rusza = False
+                    return True
+
             kierunek = roznica / roznica_dlugosc
             przesuniecie = kierunek * predkosc * dt
 
