@@ -20,6 +20,7 @@ class figura:
         self.czy_rusza = False
         self.pozycja_zbitego = None
         self.kierunki = []
+        self.czy_ruch = True
         
         #--------------- wczytanie modelu i tekstury ---------------------
         if kolor:
@@ -102,39 +103,49 @@ class figura:
         self.xyz_aktualne = np.array(klasa.get_xyz_na_planszy(self), dtype=float)
         self.pozycja = docelowe
         self.xyz_docelowe = np.array(klasa.get_xyz_na_planszy(self), dtype=float)
-        self.faza = 2
+        self.faza = 3
+        self.czy_ruch = True
         
     def rozpocznij_zbijanie(self, docelowy_xyz):
         self.czy_rusza = True
         klasa = self.__class__
         self.xyz_aktualne = np.array(klasa.get_xyz_na_planszy(self), dtype=float)
         self.xyz_docelowe = np.array(docelowy_xyz, dtype=float)
-        self.xyz_posrednie = self.xyz_aktualne.copy()
-        self.xyz_posrednie[2] += 5.0
+        # faza 1: w górę
+        self.xyz_posrednie1 = self.xyz_aktualne.copy()
+        self.xyz_posrednie1[2] += 5.0
+        # faza 2: nad cel (ta sama wysokość co faza 1)
+        self.xyz_posrednie2 = self.xyz_docelowe.copy()
+        self.xyz_posrednie2[2] += 5.0
         self.faza = 1
+        self.czy_ruch = False
 
     def przesun(self, dt):
         try:
             if self.faza == 1:
-                cel = self.xyz_posrednie
+                cel = self.xyz_posrednie1
+            elif self.faza == 2:
+                cel = self.xyz_posrednie2
             else:
                 cel = self.xyz_docelowe
+
+            predkosc = PREDKOSC * 2.5 if not self.czy_ruch else PREDKOSC
 
             roznica = cel - self.xyz_aktualne
             roznica_dlugosc = np.linalg.norm(roznica)
             kierunek = roznica / roznica_dlugosc
-            przesuniecie = kierunek * PREDKOSC * dt
+            przesuniecie = kierunek * predkosc * dt
 
             if roznica_dlugosc < np.linalg.norm(przesuniecie):
                 self.xyz_aktualne = cel.copy()
-                if self.faza == 1:
-                    self.faza = 2  # przejdź do fazy 2
+                if self.faza < 3:
+                    self.faza += 1
                     return False
                 else:
                     self.czy_rusza = False
                     return True
 
-            self.xyz_aktualne += kierunek * PREDKOSC * dt
+            self.xyz_aktualne += kierunek * predkosc * dt
             return False
         except:
             self.czy_rusza = False
