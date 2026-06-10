@@ -91,6 +91,33 @@ class Silnik_UI():
         imgui.columns(1)
         imgui.end_child()
 
+    
+    def wyswietl_historie(self, historia):
+        imgui.separator()
+        imgui.push_font(self.font, 14)
+        imgui.text("Ostatnie ruchy:")
+        imgui.pop_font()
+        
+        imgui.push_font(self.font, 13)
+        imgui.columns(3, "historia_cols", True)
+        imgui.text("Tura")
+        imgui.next_column()
+        imgui.text("Kolor")
+        imgui.next_column()
+        imgui.text("Ruch")
+        imgui.next_column()
+        imgui.separator()
+        
+        for ruch, tura_bialych, numer in reversed(historia):
+            imgui.text(str(numer // 2 + 1))
+            imgui.next_column()
+            imgui.text("Biale" if tura_bialych else "Czarne")
+            imgui.next_column()
+            imgui.text(str(ruch))
+            imgui.next_column()
+        
+        imgui.columns(1)
+        imgui.pop_font()
 
     def wyswietl_plansze(self,plansza):
         imgui.image(imgui.ImTextureRef(plansza),imgui.ImVec2(self.szerokosc - 10,self.szerokosc - 10))
