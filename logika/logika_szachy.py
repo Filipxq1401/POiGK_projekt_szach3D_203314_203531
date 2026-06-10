@@ -4,6 +4,7 @@ from logika.figury import *
 import copy
 import io
 import cairosvg
+from collections import deque
 class Logika_szachy():
     def __init__(self):
         self.plansza = chess.Board()
@@ -17,6 +18,7 @@ class Logika_szachy():
         self.wynik = 0
         self.powod_remisu = 0
         self.pionek_do_promocji = None
+        self.ostatnie_ruchy = deque([])
 
     def wykonaj_ruch(self,ruch):
         try:
@@ -47,11 +49,11 @@ class Logika_szachy():
         
         return self.plansza_wlasna
     
-    def podswietlenie_baza(self,hover):
+    def podswietlenie_baza(self,hover,koniec = False):
         pola_do_podświetlenia = []
         if hover is not None:
             pola_do_podświetlenia.append([hover, 0,1,0]) # czerwone
-        if self.wybrana_figura:
+        if self.wybrana_figura and not koniec:
             pola_do_podświetlenia.append([self.wybrana_figura.get_pozycja(),1,1,0])
         if self.gracz_bialy.czy_szach():
             pola_do_podświetlenia.append([self.gracz_bialy.pozycja_krola(),1,0,0])
@@ -161,22 +163,22 @@ class Logika_szachy():
         #if ruch[2] == "bicie":
         #    self.plansza_wlasna[k_doc][w_doc].zbij()
         if not(isinstance(self.plansza_wlasna[k_akt][w_akt],pionek) and (w_doc == 7 or w_doc == 0)):
-            self.wykonaj_ruch(self.plansza.san(ruch_chess))
+            ruch_san = self.plansza.san(ruch_chess)
+            self.dodaj_ruch_do_historii(ruch_san)
+            self.wykonaj_ruch(ruch_san)
         self.wybierz_figure(None)
 
     def nowa_tura(self):
         self.plansza_wlasna = self.stworz_nowa_plansze()
-        self.tura = not self.tura
-        if self.tura:
+        if not self.tura:
             self.gracz_bialy.resetuj_przelot()
         else:
             self.gracz_czarny.resetuj_przelot()
-        self.numer_tury += 1
         czy_jakis_ruch = self.czy_ma_ruchy()
         self.gracz_bialy.ustaw_szach(self.czy_szach(True))
         self.gracz_czarny.ustaw_szach(self.czy_szach(False))
         if not czy_jakis_ruch:
-            if self.tura:
+            if not self.tura:
                 if self.gracz_bialy.czy_szach():
                     self.wynik = 2
                     return True
@@ -193,20 +195,23 @@ class Logika_szachy():
                     self.powod_remisu = 2
                     return True
         else:
-            wynik = self.plansza.outcome()
+            wynik = self.plansza.outcome(claim_draw=True)
             if wynik:
                 if wynik.result() == "1/2-1/2":
                     self.wynik = 0
-                    self.powod_remisu = wynik.termination()
+                    self.powod_remisu = wynik.termination
                 elif wynik.result() == "1-0":
                     self.wynik = 1
                 else:
                     self.wynik = 2
                 return True
             else:
+                self.tura = not self.tura
+                self.numer_tury += 1
                 return False
 
-        
+    def get_historia(self):
+        return list(self.ostatnie_ruchy)
 
     def czy_szach(self,kolor):
         if kolor:
@@ -252,7 +257,6 @@ class Logika_szachy():
         else:
             aktywny_gracz.czas = 0
             self.wynik = 2 if self.tura else 1
-            self.powod_remisu = 0 
             return True
 
     def get_czas_str(self):
@@ -319,7 +323,22 @@ class Logika_szachy():
         gracz = self.gracz_bialy if self.tura else self.gracz_czarny
         ruch = gracz.wykonaj_promocje(self.pionek_do_promocji,na_co)
         self.pionek_do_promocji = None
+        self.dodaj_ruch_do_historii(self.plansza.san(ruch))
         self.plansza.push(ruch)
+
+    def ustaw_czas(self,czas,bonus):
+        self.gracz_bialy.czas = czas
+        self.gracz_czarny.czas = czas
+        self.gracz_bialy.bonus = bonus
+        self.gracz_czarny.bonus = bonus
+
+    def dodaj_ruch_do_historii(self,ruch):
+        self.ostatnie_ruchy.append([ruch,self.tura])
+        if len(self.ostatnie_ruchy) > 5:
+            self.ostatnie_ruchy.popleft()
+
+
+        
 
 
         
@@ -347,6 +366,7 @@ class Gracz():
         #self.czy_w_ruchu = False
         self.figury_w_ruchu = []
         self.figura_zbijana = None
+        self.bonus = 0
 
     def get_poruszajace(self):
         return self.figury_w_ruchu + [self.figura_zbijana]
@@ -375,6 +395,7 @@ class Gracz():
         return self.krol.get_pozycja()
     
     def rozpocznij_ruch(self,plansza,ruch):
+        self.czas += self.bonus
         self.figury_w_ruchu.append(plansza[ruch[0]%10][ruch[0]//10])
         if ruch[2] == "podwojny":
             plansza[ruch[0]%10][ruch[0]//10].czy_do_przelotu = True

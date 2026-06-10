@@ -1,6 +1,7 @@
 import pygame
 from pygame.locals import *
-
+import copy
+from collections import deque
 
 from czesc_3d.silnik_3d import Silnik_3D
 from czesc_2d.silnik_ui import Silnik_UI
@@ -28,6 +29,7 @@ class Game_manager():
         self.nowa_plansza = True
         self.poprzednie_podswietlane_pola = []
         self.czy_promocja = False
+        self.historia = deque([])
 
     def reset_gry(self):
         self.logika = Logika_szachy()
@@ -68,19 +70,22 @@ class Game_manager():
             elif self.stan == StanProgramu.Poruszanie_figury:
                 if not self.logika.czy_promocja():
                     self.stan = StanProgramu.Obracanie_kamery
+                    self.zapisz_logike()
                     self.czy_koniec = self.logika.nowa_tura()
                     self.svg_planszy = self.logika.get_svg_planszy(None)
+                    print(self.logika.get_historia())
                     self.nowa_plansza = True
                 else:
                     self.stan = StanProgramu.Menu_promocji
                     self.czy_promocja = False
             
-            if self.czy_koniec and self.stan == StanProgramu.Normalne:
+            if self.czy_koniec:
+                pola_do_podswietlenia = self.logika.podswietlenie_baza(None,True)
+                self.svg_planszy = self.logika.get_svg_planszy(pola_do_podswietlenia)
+                self.nowa_plansza = True
                 self.stan = StanProgramu.Koniec
             
             if self.stan == StanProgramu.Menu_promocji and self.czy_promocja:
-                #self.svg_planszy = self.logika.get_svg_planszy(None)
-                #self.nowa_plansza = True
                 self.stan = StanProgramu.Poruszanie_figury
 
             aktualne_pole = self.silnik_3d.znajdz_pole(pygame.mouse.get_pos()) # pole na którym jest myszka
@@ -120,9 +125,16 @@ class Game_manager():
                 czas_bialych, czas_czarnych = self.logika.get_czas_str()
                 self.silnik_ui.wyswietl_zegary(czas_bialych, czas_czarnych, self.logika.tura)
                 #self.silnik_ui.wyswietl_historie(self.logika.get_historia())
-                #self.silnik_ui.wyswietl_panel_kontrolny(self)
                 if self.stan == StanProgramu.Menu_promocji:
                     self.czy_promocja = self.silnik_ui.wyswietl_menu_promocji(self.logika)
+                elif self.stan == StanProgramu.Koniec:
+                    pola_do_podswietlenia = self.logika.podswietlenie_baza(None,True)
+                    if self.silnik_ui.wyswietl_menu_konca(self.logika.plansza.outcome(claim_draw=True), True if self.logika.wynik == 1 else False):
+                        self.reset_gry()
+                else:
+                    pass
+                    #self.silnik_ui.wyswietl_panel_kontrolny(self)
+
                 self.silnik_ui.zakoncz_okno()
             else:
                 self.silnik_ui.wyswietl_menu_poczatkowe(self)
@@ -140,6 +152,7 @@ class Game_manager():
             
             self.silnik_ui.renderuj_klatke()
             
+
             if pola_do_podswietlenia and aktualne_pole:
                 pola_do_podswietlenia.pop(0)
             self.poprzednie_podswietlane_pola = pola_do_podswietlenia
@@ -155,10 +168,20 @@ class Game_manager():
         return self.logika.wykonaj_ruch(ruch)
     
     def cofnij_ruch(self):
-        self.logika.cofnij_ruch()
+        pass
 
-    def zacznij_normalne(self):
+    def zacznij_normalne(self,czas,bonus):
+        self.logika.ustaw_czas(czas,bonus)
         self.stan = StanProgramu.Normalne
+        self.nowa_plansza = True
+
+    def zapisz_logike(self):
+        self.historia.append(copy.deepcopy(self.logika))
+
+    def cofnij(self):
+        if self.historia:
+            self.logika = self.historia.pop()
+            
 
 #init 
 #jak się klikne na figure to sprawdza legalność ruchów

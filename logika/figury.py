@@ -122,9 +122,9 @@ class figura:
 
     def przesun(self, dt):
         try:
-            if not self.czy_ruch:
-                print(self.xyz_aktualne)
-                print(dt)
+            #if not self.czy_ruch:
+            #    #print(self.xyz_aktualne)
+            #    #print(dt)
             if self.faza == 1:
                 cel = self.xyz_posrednie1
             elif self.faza == 2:

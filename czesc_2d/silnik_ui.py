@@ -1,5 +1,6 @@
 from imgui_bundle import imgui
 from imgui_bundle.python_backends.pygame_backend import PygameRenderer
+import chess
 class Silnik_UI():
     def __init__(self, szer, wys):
         self.szerokosc = szer / 4
@@ -11,7 +12,7 @@ class Silnik_UI():
         self.ruch=""
         self.blad = False
 
-        self.czas_poczatkowy = 600
+        self.czas_poczatkowy = 300
         self.czas_za_ruch = 0
         self.plik_partii = ""
         self.opoznienie_odtwarzania = 2
@@ -52,10 +53,13 @@ class Silnik_UI():
         ww = imgui.get_window_width()
         imgui.set_cursor_pos_x((ww - tw) / 2)
 
-        if tura_bialych:
-            imgui.text_colored((0.0, 1.0, 0.0, 1.0), text)
+        if text == "00:00":
+            imgui.text_colored((1.0, 0.0, 0.0, 1.0), text)
         else:
-            imgui.text_colored((0.4, 0.4, 0.4, 1.0), text)
+            if tura_bialych:
+                imgui.text_colored((0.0, 1.0, 0.0, 1.0), text)
+            else:
+                imgui.text_colored((0.4, 0.4, 0.4, 1.0), text)
 
         imgui.pop_font()
         imgui.end_child()
@@ -72,10 +76,13 @@ class Silnik_UI():
         ww = imgui.get_window_width()
         imgui.set_cursor_pos_x((ww - tw) / 2)
 
-        if not tura_bialych:
-            imgui.text_colored((0.0, 1.0, 0.0, 1.0), text)
+        if text == "00:00":
+            imgui.text_colored((1.0, 0.0, 0.0, 1.0), text)
         else:
-            imgui.text_colored((0.7, 0.7, 0.7, 1.0), text)
+            if not tura_bialych:
+                imgui.text_colored((0.0, 1.0, 0.0, 1.0), text)
+            else:
+                imgui.text_colored((0.7, 0.7, 0.7, 1.0), text)
 
         imgui.pop_font()
         imgui.end_child()
@@ -163,7 +170,7 @@ class Silnik_UI():
 
         imgui.set_cursor_pos_x((self.szerokosc - przycisk_szerokosc) / 2)
         if imgui.button("Zacznij gre", imgui.ImVec2(przycisk_szerokosc, przycisk_wysokosc)):
-            gra.zacznij_normalne()
+            gra.zacznij_normalne(self.czas_poczatkowy,self.czas_za_ruch)
 
         imgui.spacing()
 
@@ -210,8 +217,70 @@ class Silnik_UI():
             komunikat_szerokosc = imgui.calc_text_size(komunikat).x
             imgui.set_cursor_pos_x((self.szerokosc - komunikat_szerokosc) / 2)
             imgui.text_colored(imgui.ImVec4(1, 0.5, 0, 1), komunikat)
+
+    def wyswietl_menu_konca(self,outcome, wygrany):
+        imgui.separator()
+        imgui.push_font(self.font,30)
+        tekst = "Koniec Gry"
+        tekst_szerokosc = imgui.calc_text_size(tekst).x
+        imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+        imgui.text(tekst)
+        imgui.pop_font()
+        imgui.separator()
+        imgui.push_font(self.font,20)
+        if outcome is not None:
+            tekst = ""
+            tekst += outcome.result()
+            tekst += " - "
+            if outcome.winner is None:
+                tekst += "remis"
+            elif outcome.winner:
+                tekst += "wygral gracz grajacy bialymi figurami"
+            else:
+                tekst += "wygral gracz grajacy czarnymi figurami"
+        else:
+            if wygrany:
+                tekst = "1-0 - wygral gracz grajacy bialymi figurami"
+            else:
+                tekst = "0-1 - wygral gracz grajacy czarnymi figurami"
+        tekst_szerokosc = imgui.calc_text_size(tekst).x
+        imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+        imgui.text(tekst)
+        tekst = "Powod: "
+        if outcome is None:
+            tekst+="przeciwnikowi skonczyl sie czas"
+        else:
+            #print(outcome.termination)
+            match outcome.termination:
+                case chess.Termination.CHECKMATE:
+                    tekst+="mat"
+                case chess.Termination.STALEMATE:
+                    tekst+="pat"
+                case chess.Termination.INSUFFICIENT_MATERIAL:
+                    tekst+="niewystarczajacy material do mata"
+                case chess.Termination.SEVENTYFIVE_MOVES:
+                    tekst+="zasada 75 ruchów"
+                case chess.Termination.FIVEFOLD_REPETITION:
+                    tekst+="pieciokrotne powtorzenie pozycji"
+                case chess.Termination.FIFTY_MOVES:
+                    tekst+="zasada 50 ruchów"
+                case chess.Termination.THREEFOLD_REPETITION:
+                    tekst+="trzykrotne powtorzenie pozycji"
+        tekst_szerokosc = imgui.calc_text_size(tekst).x
+        imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+        imgui.text(tekst)  
+        imgui.pop_font()
+        imgui.spacing()
+        przycisk = False
+        imgui.set_cursor_pos_x((self.szerokosc - 180) / 2)
+        if imgui.button("Resetuj gre", imgui.ImVec2(180, 35)):
+            przycisk = True
+        imgui.spacing()
+        return przycisk
+
         
 
     def renderuj_klatke(self):
         imgui.render()
         self.impl.render(imgui.get_draw_data())
+        
