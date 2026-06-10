@@ -1,5 +1,6 @@
 from czesc_3d.model_3d import model_3d
 import numpy as np
+
 PREDKOSC = 10
 class figura:
     model_bialy = None
@@ -133,6 +134,9 @@ class figura:
 
             roznica = cel - self.xyz_aktualne
             roznica_dlugosc = np.linalg.norm(roznica)
+            if roznica_dlugosc < 0.001:
+                self.czy_rusza = False
+                return True
             kierunek = roznica / roznica_dlugosc
             przesuniecie = kierunek * predkosc * dt
 

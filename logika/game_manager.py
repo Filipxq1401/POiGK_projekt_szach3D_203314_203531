@@ -22,6 +22,9 @@ class Game_manager():
         self.logika = Logika_szachy()
         self.stan = StanProgramu.Normalne
         self.kat = 0
+        self.czy_koniec = False
+        self.svg_planszy = self.logika.get_svg_planszy(None)
+        self.nowa_plansza = True
 
 
     def start_gry(self):
@@ -29,7 +32,7 @@ class Game_manager():
         running = True
         while running:
             kliknete_pole = None
-            dt = clock.tick(120) / 1000.0 # czas ruchu kamery
+            dt = clock.tick(60) / 1000.0 # czas ruchu kamery
             #----------------- Obsługa eventów -----------------
            
             aktywny_gracz = self.logika.gracz_bialy if self.logika.tura else self.logika.gracz_czarny
@@ -52,8 +55,17 @@ class Game_manager():
             if self.logika.czy_cos_sie_rusza():
                 self.stan = StanProgramu.Poruszanie_figury
             elif self.stan == StanProgramu.Poruszanie_figury:
-                self.logika.stworz_nowa_plansze()
-                self.stan = StanProgramu.Obracanie_kamery
+                self.czy_koniec = self.logika.nowa_tura()
+                self.svg_planszy = self.logika.get_svg_planszy(None)
+                self.nowa_plansza = True
+                if not self.logika.promocja():
+                    self.stan = StanProgramu.Obracanie_kamery
+                else:
+                    self.stan = StanProgramu.Menu_promocji
+            
+            if self.czy_koniec and self.stan == StanProgramu.Normalne:
+                self.stan = StanProgramu.Koniec
+
             aktualne_pole = self.silnik_3d.znajdz_pole(pygame.mouse.get_pos()) # pole na którym jest myszka
             #pola_do_podswietlenia = self.logika.podswietlenie_ograniczone(aktualne_pole)
             pola_do_podswietlenia = []
@@ -65,7 +77,9 @@ class Game_manager():
                 case StanProgramu.Poruszanie_figury:
                     self.logika.porusz(dt)
                     poruszajace = self.logika.get_poruszajace_figury()
+                    pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
                 case StanProgramu.Obracanie_kamery:
+                    pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
                     cel_kat = 0.0 if self.logika.tura else 180.0
                     roznica = cel_kat - self.kat
                     predkosc = 180.0 
@@ -77,11 +91,27 @@ class Game_manager():
                             self.kat += krok if roznica > 0 else -krok
                     else:
                         self.stan = StanProgramu.Normalne
+            #if pola_do_podswietlenia:
+            #    widziane = set()
+            #    wynik = []
+            #    for pole in pola_do_podswietlenia:
+            #        if pole[0] not in widziane:
+            #            wynik.append(pole)
+            #            widziane.add(pole[0])
+            #    pola_do_podswietlenia = wynik
 
-            self.silnik_ui.generuj_klatke(self,self.logika.plansza)
+            if pola_do_podswietlenia[1:] != self.logika.poprzednie_podswietlane_pola and aktualne_pole is not None:
+                self.svg_planszy = self.logika.get_svg_planszy(pola_do_podswietlenia[1:])
+                self.nowa_plansza = True
+            
+            if self.nowa_plansza:
+                self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
+            
+            self.silnik_ui.generuj_klatke(self,self.logika.plansza,self.silnik_3d.tex_planszy,self.silnik_3d.rozmiar_planszy)
             self.silnik_3d.ustaw_kamere(self.kat,dt)
             self.silnik_3d.wyswietl_plansze()
-            self.silnik_3d.podswietl_pola(pola_do_podswietlenia)
+            if pola_do_podswietlenia:
+                self.silnik_3d.podswietl_pola(pola_do_podswietlenia)
             self.silnik_3d.wyswietl_figur_plansza(self.logika.get_figury_na_planszy())
             if poruszajace:
                 self.silnik_3d.wyswietl_poruszajace(poruszajace)
@@ -89,8 +119,11 @@ class Game_manager():
             self.silnik_3d.wyswietl_zbite(zbite)
             #self.silnik_ui.renderuj_zegary(self.logika.gracz_bialy.czas, self.logika.gracz_czarny.czas)
             self.silnik_ui.renderuj_klatke()
-
             
+            if pola_do_podswietlenia and aktualne_pole:
+                pola_do_podswietlenia.pop(0)
+            self.logika.poprzednie_podswietlane_pola = pola_do_podswietlenia
+            self.nowa_plansza = False
             
             pygame.display.flip()
 
