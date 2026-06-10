@@ -6,19 +6,33 @@ import io
 import cairosvg
 from collections import deque
 class Logika_szachy():
-    def __init__(self):
-        self.plansza = chess.Board()
-        self.gracz_bialy = Gracz(True)
-        self.gracz_czarny = Gracz(False)
-        self.wybrana_figura = None
-        self.legalne_ruchy_wybranej_figury = None
-        self.plansza_wlasna = self.stworz_nowa_plansze()
-        self.tura = True # tura białego
-        self.numer_tury = 0 
-        self.wynik = 0
-        self.powod_remisu = 0
-        self.pionek_do_promocji = None
-        self.ostatnie_ruchy = deque([])
+    def __init__(self, kopia = None):
+        if kopia is None:
+            self.plansza = chess.Board()
+            self.gracz_bialy = Gracz(True)
+            self.gracz_czarny = Gracz(False)
+            self.wybrana_figura = None
+            self.legalne_ruchy_wybranej_figury = None
+            self.plansza_wlasna = self.stworz_nowa_plansze()
+            self.tura = True # tura białego
+            self.numer_tury = 0 
+            self.wynik = 0
+            self.powod_remisu = 0
+            self.pionek_do_promocji = None
+            self.ostatnie_ruchy = deque([])
+        else:
+            self.plansza = copy.deepcopy(kopia.plansza)
+            self.gracz_bialy = Gracz(True,kopia.gracz_bialy)
+            self.gracz_czarny = Gracz(False,kopia.gracz_czarny)
+            self.wybrana_figura = None
+            self.legalne_ruchy_wybranej_figury = None
+            self.plansza_wlasna = self.stworz_nowa_plansze()
+            self.tura = kopia.tura # tura białego
+            self.numer_tury = kopia.numer_tury 
+            self.wynik = kopia.wynik
+            self.powod_remisu = kopia.powod_remisu
+            self.pionek_do_promocji = None
+            self.ostatnie_ruchy = copy.deepcopy(kopia.ostatnie_ruchy)
 
     def wykonaj_ruch(self,ruch):
         try:
@@ -359,25 +373,73 @@ class Logika_szachy():
 
 
 class Gracz():
-    def __init__(self, kolor):
+    def __init__(self, kolor, kopia = None):
         self.kolor = kolor
-        self.czas = 300
-        self.piony = [pionek(self.kolor,i) for i in range(0,8)]
-        #self.piony = []
-        self.krol = krol(self.kolor)
-        self.hetman = [hetman(self.kolor)]
-        wiersz = 0 if kolor else 70
-        self.wieze = [wieza(self.kolor,wiersz), wieza(self.kolor,wiersz + 7)]
-        self.skoczki = [skoczek(self.kolor,wiersz + 1), skoczek(self.kolor,wiersz + 6)]
-        self.gonce = [goniec(self.kolor,wiersz + 2), goniec(self.kolor,wiersz + 5)]
-        self.zbite_figury = []
-        self.figury_na_planszy = self.piony + [self.krol] + self.hetman + self.wieze + self.skoczki + self.gonce
-        self.czy_w_szachu = False
-        self.ile_zbitych = 0
-        #self.czy_w_ruchu = False
-        self.figury_w_ruchu = []
-        self.figura_zbijana = None
-        self.bonus = 0
+        if kopia is None:
+            self.czas = 300
+            self.piony = [pionek(self.kolor,i) for i in range(0,8)]
+            self.krol = krol(self.kolor)
+            self.hetman = [hetman(self.kolor)]
+            wiersz = 0 if kolor else 70
+            self.wieze = [wieza(self.kolor,wiersz), wieza(self.kolor,wiersz + 7)]
+            self.skoczki = [skoczek(self.kolor,wiersz + 1), skoczek(self.kolor,wiersz + 6)]
+            self.gonce = [goniec(self.kolor,wiersz + 2), goniec(self.kolor,wiersz + 5)]
+            self.zbite_figury = []
+            self.figury_na_planszy = self.piony + [self.krol] + self.hetman + self.wieze + self.skoczki + self.gonce
+            self.czy_w_szachu = False
+            self.ile_zbitych = 0
+            self.figury_w_ruchu = []
+            self.figura_zbijana = None
+            self.bonus = 0
+        else:
+            self.piony = []
+            self.krol = None
+            self.hetman = []
+            self.wieze = []
+            self.skoczki = [] 
+            self.gonce =  []
+            self.figury_na_planszy = []
+            self.zbite_figury = []
+            stare_figury_plansza  = kopia.figury_na_planszy
+            stare_figury_zbite = kopia.zbite_figury
+            for figura in stare_figury_plansza:
+                nowa_figura = copy.deepcopy(figura)
+                self.figury_na_planszy.append(nowa_figura)
+                if isinstance(nowa_figura,pionek):
+                    self.piony.append(nowa_figura)
+                elif isinstance(nowa_figura,krol):
+                    self.krol = nowa_figura
+                elif isinstance(nowa_figura,hetman):
+                    self.hetman.append(nowa_figura)
+                elif isinstance(nowa_figura,wieza):
+                    self.wieze.append(nowa_figura)
+                elif isinstance(nowa_figura,skoczek):
+                    self.skoczki.append(nowa_figura)
+                else:
+                    self.gonce.append(nowa_figura)
+
+            for figura in stare_figury_zbite:
+                nowa_figura = copy.deepcopy(figura)
+                self.zbite_figury.append(nowa_figura)
+                if isinstance(nowa_figura,pionek):
+                    self.piony.append(nowa_figura)
+                elif isinstance(nowa_figura,krol):
+                    self.krol = nowa_figura
+                elif isinstance(nowa_figura,hetman):
+                    self.hetman.append(nowa_figura)
+                elif isinstance(nowa_figura,wieza):
+                    self.wieze.append(nowa_figura)
+                elif isinstance(nowa_figura,skoczek):
+                    self.skoczki.append(nowa_figura)
+                else:
+                    self.gonce.append(nowa_figura)
+
+            self.czas = kopia.czas
+            self.czy_w_szachu = kopia.czy_w_szachu
+            self.ile_zbitych = kopia.ile_zbitych
+            self.figury_w_ruchu = []
+            self.figura_zbijana = None
+            self.bonus = kopia.bonus
 
     def get_poruszajace(self):
         return self.figury_w_ruchu + [self.figura_zbijana]

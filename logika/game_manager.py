@@ -71,8 +71,8 @@ class Game_manager():
             elif self.stan == StanProgramu.Poruszanie_figury:
                 if not self.logika.czy_promocja():
                     self.stan = StanProgramu.Obracanie_kamery
-                    self.zapisz_logike()
                     self.czy_koniec = self.logika.nowa_tura()
+                    self.zapisz_logike()
                     self.svg_planszy = self.logika.get_svg_planszy(None)
                     self.silnik_ui.resetu_ruch()
                     self.nowa_plansza = True
@@ -176,20 +176,35 @@ class Game_manager():
         self.stan = StanProgramu.Normalne
         self.svg_planszy = self.logika.get_svg_planszy(None)
         self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
+        self.zapisz_logike()
 
 
     def zapisz_logike(self):
-        self.historia.append(copy.deepcopy(self.logika))
+        #gracz_bialy = copy.deepcopy(self.logika.gracz_bialy)
+        #gracz_czarny = copy.deepcopy(self.logika.gracz_czarny)
+        #for i,figura in enumerate(self.logika.gracz_bialy.figury_na_planszy):
+        #    gracz_bialy.figury_na_planszy[i] = copy.deepcopy(figura)
+        #for i,figura in enumerate(self.logika.gracz_bialy.zbite_figury):
+        #    gracz_bialy.zbite_figury[i] = copy.deepcopy(figura)
+        #for i,figura in enumerate(self.logika.gracz_czarny.figury_na_planszy):
+        #    gracz_czarny.figury_na_planszy[i] = copy.deepcopy(figura)
+        #for i,figura in enumerate(self.logika.gracz_czarny.zbite_figury):
+        #    gracz_czarny.zbite_figury[i] = copy.deepcopy(figura)
+        kopia_logiki = Logika_szachy(self.logika)
+        #kopia_logiki.gracz_bialy = gracz_bialy
+        #kopia_logiki.gracz_czarny = gracz_czarny
+        self.historia.append(kopia_logiki)
 
     def cofnij(self):
         print(self.historia)
-        if self.historia:
-            self.logika =  self.historia[-1]
+        if len(self.historia) > 1:
+            self.logika = Logika_szachy(self.historia[-2])
+            print(self.logika)
             self.historia.pop()
-        self.kat = 0.0 if self.logika.tura else 180.0
-        self.stan = StanProgramu.Normalne
-        self.svg_planszy = self.logika.get_svg_planszy(None)
-        self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
+            self.kat = 0.0 if self.logika.tura else 180.0
+            self.stan = StanProgramu.Normalne
+            self.svg_planszy = self.logika.get_svg_planszy(None)
+            self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
 
             
 
