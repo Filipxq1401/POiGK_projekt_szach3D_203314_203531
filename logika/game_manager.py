@@ -36,6 +36,7 @@ class Game_manager():
         self.ostatni_ruch = 0
         self.gry = []
         self.aktualna_gra = 0
+        self.auto = True
 
     def reset_gry(self):
         self.logika = Logika_szachy()
@@ -54,6 +55,7 @@ class Game_manager():
         self.ostatni_ruch = 0
         self.gry = []
         self.aktualna_gra = 0
+        self.auto = True
 
     def soft_reset(self):
         self.logika = Logika_szachy()
@@ -190,7 +192,11 @@ class Game_manager():
             else:
                 self.silnik_ui.inicjalizuj_klatke()
                 pola_do_podswietlenia = []
-                ruch = self.ruchy[self.logika.numer_tury]
+                #print(self.logika.numer_tury)
+                if self.logika.numer_tury == len(self.ruchy):
+                    self.stan = StanProgramu.Koniec
+                else:
+                    ruch = self.ruchy[self.logika.numer_tury]
                 #print(self.logika.numer_tury,len(self.ruchy))
                 if self.stan == StanProgramu.Obracanie_kamery and self.czy_koniec:
                     self.stan = StanProgramu.Koniec
@@ -204,7 +210,7 @@ class Game_manager():
                 
                 match self.stan:
                     case StanProgramu.Normalne:
-                        if self.ostatni_ruch > self.opoznienie:
+                        if self.ostatni_ruch > self.opoznienie and self.auto:
                             self.wykonaj_ruch_odtwarzanie()
                         self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
                         self.silnik_ui.wyswietl_historie(self.logika.get_historia())
@@ -222,9 +228,13 @@ class Game_manager():
 
                         self.silnik_ui.renderuj_klatke()
                     case StanProgramu.Poruszanie_figury:
+                        self.logika.porusz(dt)
                         if not self.logika.czy_cos_sie_rusza():
                             self.stan = StanProgramu.Obracanie_kamery
-                        self.logika.porusz(dt)
+                            # Jeśli był to ruch z promocją - wykonaj ją automatycznie
+                            ruch_biezacy = self.ruchy[min(self.logika.numer_tury, len(self.ruchy) - 1)]
+                            if ruch_biezacy.promotion is not None:
+                                self.logika.wykonaj_promocje_auto(ruch_biezacy.promotion)
                         poruszajace = self.logika.get_poruszajace_figury()
                         pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
                         self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
@@ -255,15 +265,11 @@ class Game_manager():
                             else:
                                 self.kat += krok if roznica > 0 else -krok
                         else:
-                            if ruch.promotion is not None:
-                                pass
-                                #self.wymus_promocje()
-                            else:
-                                self.stan = StanProgramu.Normalne
-                                self.zapisz_logike()
-                                self.logika.nowa_tura()
-                                self.svg_planszy = self.logika.get_svg_planszy(None)
-                                self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
+                            self.stan = StanProgramu.Normalne
+                            self.zapisz_logike()
+                            self.logika.nowa_tura()
+                            self.svg_planszy = self.logika.get_svg_planszy(None)
+                            self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
                         self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
                         self.silnik_ui.wyswietl_historie(self.logika.get_historia())
                         self.silnik_ui.wyswietl_kontrolki_odtwarzania(self)
@@ -333,11 +339,14 @@ class Game_manager():
         self.odtwarzenie = True
         self.opoznienie = opoznienie
         self.gry = self.logika.wczytaj_pgn(plik)
+        self.auto = True
         self.zacznij_gre_z_pliku()
 
     def zacznij_gre_z_pliku(self):
         self.soft_reset()
         self.ruchy = list(self.gry[self.aktualna_gra].mainline_moves())
+        #print(self.ruchy)
+
         self.stan = StanProgramu.Normalne
         self.svg_planszy = self.logika.get_svg_planszy(None)
         self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
@@ -361,17 +370,14 @@ class Game_manager():
         self.historia.append(kopia_logiki)
 
     def cofnij(self):
-        #print(self.historia)
         if len(self.historia) > 1:
-            self.logika = Logika_szachy(self.historia[-2])
-            #print(self.logika)
             self.historia.pop()
-            if self.odtwarzenie:
-                self.kat = 0.0 if self.logika.tura else 180.0
-            else:
-                self.kat = 0.0 if self.logika.tura else 180.0
+            self.logika = Logika_szachy(self.historia[-1])
+            self.kat = 0.0 if self.logika.tura else 180.0
             self.stan = StanProgramu.Normalne
+            self.czy_koniec = False
             self.svg_planszy = self.logika.get_svg_planszy(None)
+            self.nowa_plansza = True
             self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
 
     def zapisz_gre(self,nazwa,wygrany):
@@ -394,4 +400,3 @@ class StanProgramu(Enum):
     Obracanie_kamery = auto()
     Koniec = auto()
     Menu_poczatkowe = auto()
-    

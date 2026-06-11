@@ -435,20 +435,23 @@ class Silnik_UI():
         imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
         imgui.text(tekst)
         imgui.pop_font()
-        imgui.separator()
         if gra.opoznienie != 0:
+            imgui.separator()
             tekst = f"Nastepny ruch w {(gra.opoznienie-gra.ostatni_ruch):.2f} s"
             tekst_szerokosc = imgui.calc_text_size(tekst).x
             imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
             imgui.text(tekst)
+            imgui.separator()
         imgui.separator()
-        imgui.separator()
-        szer = (self.szerokosc - 20 - imgui.get_style().item_spacing.x * 2) / 2
+        szer = (self.szerokosc - 20 - imgui.get_style().item_spacing.x * 2) / 3
         if imgui.button("Nastpeny ruch", imgui.ImVec2(szer, 35)):
             gra.wykonaj_ruch_odtwarzanie()
         imgui.same_line()
         if imgui.button("Cofnij ruch", imgui.ImVec2(szer, 35)):
             gra.cofnij()
+        imgui.same_line()
+        if imgui.button("Przelacz auto", imgui.ImVec2(szer, 35)):
+            gra.auto = not gra.auto
         imgui.separator()
         wysokosc_przyciskow = 55
         imgui.set_cursor_pos_y(self.wysokosc - wysokosc_przyciskow)

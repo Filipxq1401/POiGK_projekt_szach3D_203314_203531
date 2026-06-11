@@ -27,14 +27,14 @@ class Logika_szachy():
         else:
             self.plansza = copy.deepcopy(kopia.plansza)
             self.game = copy.deepcopy(kopia.game)
-            self.node = copy.deepcopy(kopia.node)
+            self.node = self.game.end()
             self.gracz_bialy = Gracz(True,kopia.gracz_bialy)
             self.gracz_czarny = Gracz(False,kopia.gracz_czarny)
             self.wybrana_figura = None
             self.legalne_ruchy_wybranej_figury = None
             self.plansza_wlasna = self.stworz_nowa_plansze()
             self.tura = kopia.tura # tura białego
-            self.numer_tury = kopia.numer_tury 
+            self.numer_tury = copy.deepcopy(kopia.numer_tury)
             self.wynik = kopia.wynik
             self.powod_remisu = kopia.powod_remisu
             self.pionek_do_promocji = None
@@ -48,24 +48,34 @@ class Logika_szachy():
         if self.plansza.is_legal(move):
             self.node = self.node.add_main_variation(move)
             self.plansza.push(move)
+            #print(str(self.game))
             return True
         else:
             return False
         
-    def zapisz_gre(self,nazwa,wygrany):
+    def zapisz_gre(self, nazwa, wygrany):
+        # Buduj PGN bezpośrednio ze stosu ruchów planszy - unika problemów z rozjazdami drzewa game
+        gra = chess.pgn.Game()
+        node = gra
+        plansza_temp = chess.Board()
+        for move in self.plansza.move_stack:
+            node = node.add_main_variation(move)
+            plansza_temp.push(move)
+
         wynik = self.plansza.outcome(claim_draw=True)
         if wynik:
-            self.game.headers["Result"] = wynik.result()
+            gra.headers["Result"] = wynik.result()
         else:
             if wygrany:
-                self.game.headers["Result"] = "1-0"
+                gra.headers["Result"] = "1-0"
             else:
-                self.game.headers["Result"] = "0-1"
+                gra.headers["Result"] = "0-1"
+
         folder = Path("gry")
         folder.mkdir(exist_ok=True)
         sciezka_do_pliku = folder / f"{nazwa}.pgn"
         with open(sciezka_do_pliku, "w", encoding="utf-8") as pgn_file:
-            pgn_file.write(str(self.game))
+            pgn_file.write(str(gra))
 
     def wczytaj_pgn(self,plik):
         folder = Path("gry")
@@ -80,13 +90,33 @@ class Logika_szachy():
             else:
                 return gry
     
-    def wykonaj_odtwarzany_ruch(self,ruch):
-        #print(type(ruch))
-        #print(ruch.from_square)
-        pozycja_aktualna = chess.square_name(ruch.from_square)
-        pozycja_docelowa = chess.square_name(ruch.to_square)
+    def wykonaj_odtwarzany_ruch(self, ruch):
+        k1 = ruch.from_square % 8
+        w1 = ruch.from_square // 8
+        k2 = ruch.to_square % 8
+        w2 = ruch.to_square // 8
+        pozycja_wlasna_cel = w2 * 10 + k2
 
-        self.wykonaj_manulany_ruch(pozycja_aktualna,pozycja_docelowa)
+        if self.plansza_wlasna[k1][w1] is None:
+            return
+        self.wybierz_figure(self.plansza_wlasna[k1][w1])
+        if not self.legalne_ruchy_wybranej_figury:
+            self.wybierz_figure(None)
+            return
+        for r in self.legalne_ruchy_wybranej_figury:
+            if r[1] == pozycja_wlasna_cel:
+                if self.tura:
+                    self.gracz_bialy.rozpocznij_ruch(self.plansza_wlasna, r)
+                    self.gracz_czarny.rozpocznij_zbicie(self.plansza_wlasna, r)
+                else:
+                    self.gracz_czarny.rozpocznij_ruch(self.plansza_wlasna, r)
+                    self.gracz_bialy.rozpocznij_zbicie(self.plansza_wlasna, r)
+                ruch_san = self.plansza.san(ruch)
+                self.dodaj_ruch_do_historii(ruch_san)
+                self.wykonaj_ruch(ruch_san)
+                self.wybierz_figure(None)
+                return
+        self.wybierz_figure(None)
         
     
 
@@ -386,6 +416,14 @@ class Logika_szachy():
         self.dodaj_ruch_do_historii(self.plansza.san(ruch))
         self.plansza.push(ruch)
 
+    def wykonaj_promocje_auto(self, typ_figury_chess):
+        """Wykonuje promocję automatycznie przy odtwarzaniu - bez menu, na podstawie typu z PGN."""
+        na_co = {chess.QUEEN: 0, chess.ROOK: 1, chess.BISHOP: 2, chess.KNIGHT: 3}.get(typ_figury_chess, 0)
+        gracz = self.gracz_bialy if self.tura else self.gracz_czarny
+        _, pionek = gracz.czy_pionek_promocja()
+        if pionek is not None:
+            gracz.wykonaj_promocje(pionek, na_co)
+
     def ustaw_czas(self,czas,bonus):
         self.gracz_bialy.czas = czas
         self.gracz_czarny.czas = czas
@@ -629,5 +667,3 @@ class Gracz():
         w1= pozycja1//10
         k1 = pozycja1%10
         return chess.Move(chess.square(k1,w1),chess.square(k2,w2),figura_chess)
-        
-            
