@@ -80,6 +80,15 @@ class Logika_szachy():
             else:
                 return gry
     
+    def wykonaj_odtwarzany_ruch(self,ruch):
+        #print(type(ruch))
+        #print(ruch.from_square)
+        pozycja_aktualna = chess.square_name(ruch.from_square)
+        pozycja_docelowa = chess.square_name(ruch.to_square)
+
+        self.wykonaj_manulany_ruch(pozycja_aktualna,pozycja_docelowa)
+        
+    
 
 
     def cofnij_ruch(self):

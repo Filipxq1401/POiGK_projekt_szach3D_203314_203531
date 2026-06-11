@@ -15,7 +15,7 @@ class Silnik_UI():
         self.czas_poczatkowy = 300
         self.czas_za_ruch = 0
         self.plik_partii = "szybki_mat"
-        self.opoznienie_odtwarzania = 2
+        self.opoznienie_odtwarzania = 10
         self.font = self.io.fonts.add_font_from_file_ttf("C:/Windows/Fonts/arial.ttf", 10)
         self.pole_1 = ""
         self.pole_2 = ""
@@ -392,7 +392,40 @@ class Silnik_UI():
             imgui.separator()
 
         return przycisk
-    
+    def wyswietl_kontrolki_odtwarzania(self,gra):
+        imgui.separator()
+        imgui.push_font(self.font,20)
+        tekst = "Knotrola odtwarzania"
+        tekst_szerokosc = imgui.calc_text_size(tekst).x
+        imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+        imgui.text(tekst)
+        imgui.pop_font()
+        imgui.separator()
+        if gra.opoznienie != 0:
+            tekst = f"Nastepny ruch w {(gra.opoznienie-gra.ostatni_ruch):.2f} s"
+            tekst_szerokosc = imgui.calc_text_size(tekst).x
+            imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+            imgui.text(tekst)
+        imgui.separator()
+        imgui.separator()
+        szer = (self.szerokosc - 20 - imgui.get_style().item_spacing.x * 2) / 2
+        if imgui.button("Nastpeny ruch", imgui.ImVec2(szer, 35)):
+            gra.wykonaj_ruch_odtwarzanie()
+        imgui.same_line()
+        if imgui.button("Cofnij ruch", imgui.ImVec2(szer, 35)):
+            gra.cofnij()
+        imgui.separator()
+        wysokosc_przyciskow = 55
+        imgui.set_cursor_pos_y(self.wysokosc - wysokosc_przyciskow)
+        imgui.separator()
+        szer = (self.szerokosc - 20 - imgui.get_style().item_spacing.x * 2) / 2
+        if imgui.button("Reset", imgui.ImVec2(szer, 35)):
+            gra.reset_gry()
+        imgui.same_line()
+        if imgui.button("Wyjdz", imgui.ImVec2(szer, 35)):
+            pygame.event.post(pygame.event.Event(pygame.QUIT))
+
+        
     def wyswietl_kontrolki(self,gra):
         imgui.separator()
         tekst = "Manualne wpisywanie ruchu"
@@ -462,7 +495,7 @@ class Silnik_UI():
         self.czas_poczatkowy = 300
         self.czas_za_ruch = 0
         self.plik_partii = "szybki_mat"
-        self.opoznienie_odtwarzania = 2
+        self.opoznienie_odtwarzania = 10
         self.pole_1 = ""
         self.pole_2 = ""
         self.udany_ruch = True

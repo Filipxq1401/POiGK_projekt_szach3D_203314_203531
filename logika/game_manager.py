@@ -191,18 +191,25 @@ class Game_manager():
                 self.silnik_ui.inicjalizuj_klatke()
                 pola_do_podswietlenia = []
                 ruch = self.ruchy[self.logika.numer_tury]
-                if self.logika.numer_tury >= len(self.ruchy):
+                #print(self.logika.numer_tury,len(self.ruchy))
+                if self.stan == StanProgramu.Obracanie_kamery and self.czy_koniec:
                     self.stan = StanProgramu.Koniec
+                    self.logika.nowa_tura()
+                    pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
+                    self.svg_planszy = self.logika.get_svg_planszy(pola_do_podswietlenia)
+                    self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
+                
                 if self.stan == StanProgramu.Menu_promocji:
                     self.stan = StanProgramu.Normalne
+                
                 match self.stan:
                     case StanProgramu.Normalne:
                         if self.ostatni_ruch > self.opoznienie:
                             self.wykonaj_ruch_odtwarzanie()
                         self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
                         self.silnik_ui.wyswietl_historie(self.logika.get_historia())
-                        #self.silnik_ui.wyswietl_kontrolki_odtwarzania()
-                        self.silnik_ui.wyswietl_przyciski_dolne(self,False)
+                        self.silnik_ui.wyswietl_kontrolki_odtwarzania(self)
+                        #self.silnik_ui.wyswietl_przyciski_dolne(self,False)
                         self.silnik_ui.zakoncz_okno()
                         pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
                         self.silnik_3d.ustaw_kamere_swiatlo(self.kat,dt)
@@ -217,28 +224,28 @@ class Game_manager():
                     case StanProgramu.Poruszanie_figury:
                         if not self.logika.czy_cos_sie_rusza():
                             self.stan = StanProgramu.Obracanie_kamery
-                            self.logika.porusz(dt)
-                            poruszajace = self.logika.get_poruszajace_figury()
-                            pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
-                            self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
-                            self.silnik_ui.wyswietl_historie(self.logika.get_historia())
-                            #self.silnik_ui.wyswietl_kontrolki_odtwarzania()
-                            self.silnik_ui.wyswietl_przyciski_dolne(self,False)
-                            self.silnik_ui.zakoncz_okno()
-                            pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
-                            self.silnik_3d.ustaw_kamere_swiatlo(self.kat,dt)
-                            self.silnik_3d.wyswietl_plansze()
-                            if pola_do_podswietlenia:
-                                self.silnik_3d.podswietl_pola(pola_do_podswietlenia)
-                            if poruszajace:
-                                self.silnik_3d.wyswietl_poruszajace(poruszajace)
-                            self.silnik_3d.wyswietl_figur_plansza(self.logika.get_figury_na_planszy())
-                            zbite = self.logika.get_zbite()
-                            self.silnik_3d.wyswietl_zbite(zbite)
-                    
+                        self.logika.porusz(dt)
+                        poruszajace = self.logika.get_poruszajace_figury()
+                        pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
+                        self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
+                        self.silnik_ui.wyswietl_historie(self.logika.get_historia())
+                        self.silnik_ui.wyswietl_kontrolki_odtwarzania(self)
+                        #self.silnik_ui.wyswietl_przyciski_dolne(self,False)
+                        self.silnik_ui.zakoncz_okno()
+                        pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
+                        self.silnik_3d.ustaw_kamere_swiatlo(self.kat,dt)
+                        self.silnik_3d.wyswietl_plansze()
+                        if pola_do_podswietlenia:
+                            self.silnik_3d.podswietl_pola(pola_do_podswietlenia)
+                        if poruszajace:
+                            self.silnik_3d.wyswietl_poruszajace(poruszajace)
+                        self.silnik_3d.wyswietl_figur_plansza(self.logika.get_figury_na_planszy())
+                        zbite = self.logika.get_zbite()
+                        self.silnik_3d.wyswietl_zbite(zbite)
+                
                     case StanProgramu.Obracanie_kamery:
                         pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
-                        cel_kat = 0.0 if self.logika.tura else 180.0
+                        cel_kat = 0.0 if not self.logika.tura else 180.0
                         roznica = cel_kat - self.kat
                         predkosc = 180.0 
                         if roznica != 0:
@@ -253,13 +260,14 @@ class Game_manager():
                                 #self.wymus_promocje()
                             else:
                                 self.stan = StanProgramu.Normalne
+                                self.zapisz_logike()
                                 self.logika.nowa_tura()
                                 self.svg_planszy = self.logika.get_svg_planszy(None)
                                 self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
                         self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
                         self.silnik_ui.wyswietl_historie(self.logika.get_historia())
-                        #self.silnik_ui.wyswietl_kontrolki_odtwarzania()
-                        self.silnik_ui.wyswietl_przyciski_dolne(self,False)
+                        self.silnik_ui.wyswietl_kontrolki_odtwarzania(self)
+                        #self.silnik_ui.wyswietl_przyciski_dolne(self,False)
                         self.silnik_ui.zakoncz_okno()
                         pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
                         self.silnik_3d.ustaw_kamere_swiatlo(self.kat,dt)
@@ -289,7 +297,7 @@ class Game_manager():
                         self.silnik_3d.wyswietl_figur_plansza(self.logika.get_figury_na_planszy())
                         zbite = self.logika.get_zbite()
                         self.silnik_3d.wyswietl_zbite(zbite)
-
+                self.silnik_ui.renderuj_klatke()
             pygame.display.flip()
 
         self.silnik_ui.impl.shutdown()
@@ -297,8 +305,12 @@ class Game_manager():
     
     def wykonaj_ruch_odtwarzanie(self):
         if self.stan == StanProgramu.Normalne:
-            self.zapisz_logike()
             ruch = self.ruchy[self.logika.numer_tury]
+            self.logika.wykonaj_odtwarzany_ruch(ruch)
+            if self.logika.numer_tury == len(self.ruchy) - 1:
+                self.czy_koniec = True
+            self.stan = StanProgramu.Poruszanie_figury
+            self.ostatni_ruch = 0
         
 
     def wykonaj_ruch_manualnie(self,pozycja_poczatkowa,pozycja_koncowa):
@@ -329,6 +341,7 @@ class Game_manager():
         self.stan = StanProgramu.Normalne
         self.svg_planszy = self.logika.get_svg_planszy(None)
         self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
+        self.zapisz_logike()
 
 
     def zapisz_logike(self):
@@ -348,12 +361,15 @@ class Game_manager():
         self.historia.append(kopia_logiki)
 
     def cofnij(self):
-        print(self.historia)
+        #print(self.historia)
         if len(self.historia) > 1:
             self.logika = Logika_szachy(self.historia[-2])
             #print(self.logika)
             self.historia.pop()
-            self.kat = 0.0 if self.logika.tura else 180.0
+            if self.odtwarzenie:
+                self.kat = 0.0 if self.logika.tura else 180.0
+            else:
+                self.kat = 0.0 if self.logika.tura else 180.0
             self.stan = StanProgramu.Normalne
             self.svg_planszy = self.logika.get_svg_planszy(None)
             self.silnik_3d.zaladuj_plansze(pygame.image.load(self.svg_planszy, namehint="board.png").convert_alpha())
