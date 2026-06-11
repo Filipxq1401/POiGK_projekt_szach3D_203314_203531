@@ -74,7 +74,7 @@ class Game_manager():
         while running:
             
             dt = clock.tick(60) / 1000.0 # czas ruchu kamery
-            if self.odtwarzenie and self.stan == StanProgramu.Normalne:
+            if self.odtwarzenie and self.stan == StanProgramu.Normalne and self.auto:
                 self.ostatni_ruch += dt
             else:
                 czy_koniec_czasu = self.logika.aktualizuj_czas(dt, self.stan == StanProgramu.Normalne)

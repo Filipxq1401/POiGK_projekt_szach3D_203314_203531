@@ -509,9 +509,9 @@ class Silnik_UI():
             pass
 
         #imgui.spacing()
-        imgui.same_line()
-        #imgui.set_cursor_pos_x((self.szerokosc * 0.5 - przycisk_szerokosc) / 2)
-        if imgui.button("Wykonaj ruch"):
+        #imgui.same_line()
+        imgui.set_cursor_pos_x((self.szerokosc - 130) / 2)
+        if imgui.button("Wykonaj ruch",imgui.ImVec2(130, 25)):
             self.udany_ruch = gra.wykonaj_ruch_manualnie(self.pole_1,self.pole_2)
         #imgui.same_line()
         #imgui.set_cursor_pos_x((self.szerokosc * 0.5 - przycisk_szerokosc) / 2 + 0.5 * self.szerokosc)
