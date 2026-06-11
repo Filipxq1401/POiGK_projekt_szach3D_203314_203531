@@ -416,6 +416,15 @@ class Silnik_UI():
         imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
         imgui.text(tekst)
         imgui.pop_font()
+        imgui.separator()
+        szer = (self.szerokosc - 20 - imgui.get_style().item_spacing.x * 2) / 2
+        if imgui.button("Menu glowne", imgui.ImVec2(szer, 35)):
+            gra.reset_gry()
+        imgui.same_line()
+        if not czy_nastepna:
+            if imgui.button("Nastepna gra", imgui.ImVec2(szer, 35)):
+                gra.aktualna_gra +=1
+                gra.zacznij_gre_z_pliku()
 
 
     def wyswietl_kontrolki_odtwarzania(self,gra):
@@ -527,7 +536,7 @@ class Silnik_UI():
         self.udany_ruch = True
         self.zapisano_gre = False
         self.nazwa_pliku = ""
-        self.blad
+        self.blad = False
         
 
     def renderuj_klatke(self):

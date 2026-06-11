@@ -281,12 +281,12 @@ class Game_manager():
                     case StanProgramu.Koniec:
                         self.silnik_ui.wyswietl_plansze(self.silnik_3d.tex_planszy)
                         self.silnik_ui.wyswietl_historie(self.logika.get_historia())
-                        if self.aktualna_gra < len(self.gry):
-                            pass
-                            self.silnik_ui.wyswietl_koniec_odtwarzania(self,self.gry[self.aktualna_gra],True)
-                        else:
+                        if self.aktualna_gra != len(self.gry) - 1:
                             pass
                             self.silnik_ui.wyswietl_koniec_odtwarzania(self,self.gry[self.aktualna_gra],False)
+                        else:
+                            pass
+                            self.silnik_ui.wyswietl_koniec_odtwarzania(self,self.gry[self.aktualna_gra],True)
                         self.silnik_ui.wyswietl_przyciski_dolne(self,False)
                         self.silnik_ui.zakoncz_okno()
                         pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
