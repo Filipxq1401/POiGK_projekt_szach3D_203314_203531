@@ -384,7 +384,7 @@ class Silnik_UI():
         else:
             imgui.separator()
             imgui.push_font(self.font,20)
-            tekst = "Pomuslnie zapisano gre"
+            tekst = "Pomyslnie zapisano gre"
             tekst_szerokosc = imgui.calc_text_size(tekst).x
             imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
             imgui.text(tekst)
@@ -392,10 +392,36 @@ class Silnik_UI():
             imgui.separator()
 
         return przycisk
+    
+    def wyswietl_koniec_odtwarzania(self,gra,game,czy_nastepna):
+        imgui.separator()
+        imgui.push_font(self.font,30)
+        tekst = "Koniec Gry"
+        tekst_szerokosc = imgui.calc_text_size(tekst).x
+        imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+        imgui.text(tekst)
+        imgui.pop_font()
+        imgui.separator()
+        imgui.push_font(self.font,20)
+        wynik = game.headers["Result"]
+        if wynik == "1-0":
+            tekst = "1-0 - wygral gracz grajacy bialymi figurami"
+        elif wynik == "0-1":
+            tekst = "0-1 - wygral gracz grajacy czarnymi figurami"
+        elif wynik == "1/2-1/2":
+            tekst = "1/2-1/2 - remis"
+        else:
+            tekst = "Nie podano wyniku"
+        tekst_szerokosc = imgui.calc_text_size(tekst).x
+        imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+        imgui.text(tekst)
+        imgui.pop_font()
+
+
     def wyswietl_kontrolki_odtwarzania(self,gra):
         imgui.separator()
         imgui.push_font(self.font,20)
-        tekst = "Knotrola odtwarzania"
+        tekst = "Kontrola odtwarzania"
         tekst_szerokosc = imgui.calc_text_size(tekst).x
         imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
         imgui.text(tekst)

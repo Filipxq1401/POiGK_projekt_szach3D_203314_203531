@@ -283,10 +283,10 @@ class Game_manager():
                         self.silnik_ui.wyswietl_historie(self.logika.get_historia())
                         if self.aktualna_gra < len(self.gry):
                             pass
-                            #self.silnik_ui.wyswietl_koniec_odtwarzania(self,self.gry[self.aktualna_gra],True)
+                            self.silnik_ui.wyswietl_koniec_odtwarzania(self,self.gry[self.aktualna_gra],True)
                         else:
                             pass
-                            #self.silnik_ui.wyswietl_koniec_odtwarzania(self,self.gry[self.aktualna_gra],False)
+                            self.silnik_ui.wyswietl_koniec_odtwarzania(self,self.gry[self.aktualna_gra],False)
                         self.silnik_ui.wyswietl_przyciski_dolne(self,False)
                         self.silnik_ui.zakoncz_okno()
                         pola_do_podswietlenia = self.logika.podswietlenie_baza(None)
