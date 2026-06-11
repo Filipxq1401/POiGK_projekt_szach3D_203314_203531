@@ -2,6 +2,7 @@ from imgui_bundle import imgui
 from imgui_bundle.python_backends.pygame_backend import PygameRenderer
 import chess
 import pygame
+from pathlib import Path
 class Silnik_UI():
     def __init__(self, szer, wys):
         self.szerokosc = szer / 4
@@ -13,12 +14,15 @@ class Silnik_UI():
 
         self.czas_poczatkowy = 300
         self.czas_za_ruch = 0
-        self.plik_partii = "przyklad.pgn"
+        self.plik_partii = "szybki_mat"
         self.opoznienie_odtwarzania = 2
         self.font = self.io.fonts.add_font_from_file_ttf("C:/Windows/Fonts/arial.ttf", 10)
         self.pole_1 = ""
         self.pole_2 = ""
         self.udany_ruch = True
+        self.zapisano_gre = False
+        self.nazwa_pliku = ""
+        self.blad = False
     
     def inicjalizuj_klatke(self):
         self.impl.process_inputs()
@@ -272,7 +276,12 @@ class Silnik_UI():
             self.opoznienie_odtwarzania = 0
 
         imgui.spacing()
-        brak_pliku = self.plik_partii.strip() == ""
+        
+        sciezka_do_pliku = Path("gry") / f"{self.plik_partii.strip()}.pgn"
+        if sciezka_do_pliku.exists():
+            brak_pliku = False
+        else:
+            brak_pliku = True
         imgui.set_cursor_pos_x((self.szerokosc - przycisk_szerokosc) / 2)
 
         imgui.begin_disabled(brak_pliku)
@@ -281,12 +290,12 @@ class Silnik_UI():
         imgui.end_disabled()
         
         if brak_pliku:
-            komunikat = "Podaj sciezke do pliku PGN"
+            komunikat = "Nie istnieje taki plik"
             komunikat_szerokosc = imgui.calc_text_size(komunikat).x
             imgui.set_cursor_pos_x((self.szerokosc - komunikat_szerokosc) / 2)
             imgui.text_colored(imgui.ImVec4(1, 0.5, 0, 1), komunikat)
 
-    def wyswietl_menu_konca(self,outcome, wygrany):
+    def wyswietl_menu_konca(self,gra,outcome, wygrany):
         imgui.separator()
         imgui.push_font(self.font,30)
         tekst = "Koniec Gry"
@@ -343,7 +352,45 @@ class Silnik_UI():
         imgui.set_cursor_pos_x((self.szerokosc - 180) / 2)
         if imgui.button("Resetuj gre", imgui.ImVec2(180, 35)):
             przycisk = True
+        
         imgui.spacing()
+        if not self.zapisano_gre:
+            imgui.separator()
+            imgui.push_font(self.font,20)
+            tekst = "Zapisywanie Gry"
+            tekst_szerokosc = imgui.calc_text_size(tekst).x
+            imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+            imgui.text(tekst)
+            imgui.pop_font()
+            imgui.separator()
+            imgui.spacing()
+
+            imgui.text("Nazwa pliku: ")
+            imgui.same_line()
+            imgui.set_next_item_width(self.szerokosc * 0.2)
+            _, self.nazwa_pliku = imgui.input_text("##plik",self.nazwa_pliku)
+            imgui.same_line()
+            if imgui.button("Zapisz"):
+                try:
+                    gra.zapisz_gre(self.nazwa_pliku,wygrany)
+                    self.zapisano_gre = True
+                except:
+                    self.blad = True
+            if self.blad:
+                tekst = "Zapisanie sie nie powiodlo"
+                tekst_szerokosc = imgui.calc_text_size(tekst).x
+                imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+                imgui.text_colored((1.0, 0.0, 0.0, 1.0),tekst)
+        else:
+            imgui.separator()
+            imgui.push_font(self.font,20)
+            tekst = "Pomuslnie zapisano gre"
+            tekst_szerokosc = imgui.calc_text_size(tekst).x
+            imgui.set_cursor_pos_x((self.szerokosc - tekst_szerokosc) / 2)
+            imgui.text(tekst)
+            imgui.pop_font()
+            imgui.separator()
+
         return przycisk
     
     def wyswietl_kontrolki(self,gra):
@@ -414,11 +461,14 @@ class Silnik_UI():
     def resetuj(self):
         self.czas_poczatkowy = 300
         self.czas_za_ruch = 0
-        self.plik_partii = "przyklad.pgn"
+        self.plik_partii = "szybki_mat"
         self.opoznienie_odtwarzania = 2
         self.pole_1 = ""
         self.pole_2 = ""
         self.udany_ruch = True
+        self.zapisano_gre = False
+        self.nazwa_pliku = ""
+        self.blad
         
 
     def renderuj_klatke(self):

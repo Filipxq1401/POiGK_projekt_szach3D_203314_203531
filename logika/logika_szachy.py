@@ -1,14 +1,18 @@
 import chess
 import chess.svg
+import chess.pgn
 from logika.figury import *
 import copy
 import io
 import cairosvg
 from collections import deque
+from pathlib import Path
 class Logika_szachy():
     def __init__(self, kopia = None):
         if kopia is None:
             self.plansza = chess.Board()
+            self.game = chess.pgn.Game()
+            self.node = self.game
             self.gracz_bialy = Gracz(True)
             self.gracz_czarny = Gracz(False)
             self.wybrana_figura = None
@@ -22,6 +26,8 @@ class Logika_szachy():
             self.ostatnie_ruchy = deque([])
         else:
             self.plansza = copy.deepcopy(kopia.plansza)
+            self.game = copy.deepcopy(kopia.game)
+            self.node = copy.deepcopy(kopia.node)
             self.gracz_bialy = Gracz(True,kopia.gracz_bialy)
             self.gracz_czarny = Gracz(False,kopia.gracz_czarny)
             self.wybrana_figura = None
@@ -40,11 +46,42 @@ class Logika_szachy():
         except:
             return False
         if self.plansza.is_legal(move):
+            self.node = self.node.add_main_variation(move)
             self.plansza.push(move)
             return True
         else:
             return False
         
+    def zapisz_gre(self,nazwa,wygrany):
+        wynik = self.plansza.outcome(claim_draw=True)
+        if wynik:
+            self.game.headers["Result"] = wynik.result()
+        else:
+            if wygrany:
+                self.game.headers["Result"] = "1-0"
+            else:
+                self.game.headers["Result"] = "0-1"
+        folder = Path("gry")
+        folder.mkdir(exist_ok=True)
+        sciezka_do_pliku = folder / f"{nazwa}.pgn"
+        with open(sciezka_do_pliku, "w", encoding="utf-8") as pgn_file:
+            pgn_file.write(str(self.game))
+
+    def wczytaj_pgn(self,plik):
+        folder = Path("gry")
+        folder.mkdir(exist_ok=True)
+        sciezka_do_pliku = folder / f"{plik}.pgn"
+        pgn = open(sciezka_do_pliku)
+        gry = []
+        while True:
+            gra = chess.pgn.read_game(pgn)
+            if gra is not None:
+                gry.append(gra)
+            else:
+                return gry
+    
+
+
     def cofnij_ruch(self):
         try:
             self.plansza.pop()
